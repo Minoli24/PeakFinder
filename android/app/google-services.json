@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "191118378816",
+    "project_id": "peakfinder-6410b",
+    "storage_bucket": "peakfinder-6410b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191118378816:android:e7fb4590436d461b87dca5",
+        "android_client_info": {
+          "package_name": "com.peakfinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ2SdNAOjafhEgx19lD7SmwmnG4hx_9_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
