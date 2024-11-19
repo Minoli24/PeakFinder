@@ -3,13 +3,15 @@ import {StyleSheet} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import RootNavigation from './src/navigation/RootNavigation';
 import {NavigationContainer} from '@react-navigation/native';
-
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <NavigationContainer>
-        <RootNavigation />
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <RootNavigation />
+        </NavigationContainer>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
