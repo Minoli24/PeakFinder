@@ -3,6 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {stackNames} from './config/stackNames';
 import OnBoardingStack from './stacks/onboarding/OnBoardingStack';
 import {screenOptions} from './config/navigationConstants';
+import AuthStack from './stacks/auth/AuthStack';
 
 const RootStackNavigator = createNativeStackNavigator();
 
@@ -14,6 +15,12 @@ const RootNavigation = () => {
         <RootStackNavigator.Screen
           name={'onboard'}
           component={OnBoardingStack}
+          //@ts-ignore
+          options={screenOptions}
+        />
+        <RootStackNavigator.Screen
+          name={stackNames.authStack}
+          component={AuthStack}
           //@ts-ignore
           options={screenOptions}
         />

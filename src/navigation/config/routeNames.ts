@@ -1,1 +1,4 @@
-export const routeNames = {};
+export const routeNames = {
+  Login: 'Login',
+  Register: 'Register',
+};
