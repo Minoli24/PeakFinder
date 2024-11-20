@@ -1,6 +1,8 @@
 import React from 'react';
 import OnboardingLayout from '../../layouts/onBoardingLayout';
 import {useCustomNavigation} from '../../hooks/useCustomNavigation';
+import {routeNames} from '../../navigation/config/routeNames';
+import {stackNames} from '../../navigation/config/stackNames';
 
 const OnBoardingScreenThree = () => {
   const navigation = useCustomNavigation();
@@ -13,7 +15,7 @@ const OnBoardingScreenThree = () => {
       title="Stay Safe"
       subtitle="Stay Connected"
       onButtonPress={() => {
-        navigation.navigate('OnboardingTwo');
+        navigation.navigate(stackNames.authStack);
       }}
       activePage={3}
     />
