@@ -1,6 +1,18 @@
-# IT4010-Research-Project-Comprehensive-Design-and-Analysis-Project
 
-1. TAF
-2. Project Charter
-3. Project Proposal
-   
+## Generate exe file
+
+```cmd
+pyinstaller --onefile run.py
+```
+outputs exe to `/dist/run.exe`
+
+
+# Run
+
+Run the file `run.exe`
+
+or
+
+``` cmd
+python run.py
+```
