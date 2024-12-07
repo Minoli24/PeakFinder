@@ -10,12 +10,6 @@ This project focuses on creating an innovative mobile application to enhance the
 
 ## Deployment
 
-To deploy this project run
-
-```bash
-  npm run i
-  npm start
-```
 
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
