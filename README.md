@@ -1,4 +1,4 @@
-![2](https://github.com/user-attachments/assets/9ab7a7ab-20e1-4785-b639-765bbaa48451)# IT4010-Research-Project-Comprehensive-Design-and-Analysis-Project
+# IT4010-Research-Project-Comprehensive-Design-and-Analysis-Project
 
 ## A Comprehensive Study on Developing a Hiking Assistance System
 
