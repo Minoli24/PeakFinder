@@ -35,7 +35,7 @@ void handleLEDStates() {
 }
 
 void updateLEDState() {
-    // This function is called when EMERGENCY state changes programmatically
+    // This function is called when EMERGENCY state changes programmatically 
     digitalWrite(LED1_PIN, EMERGENCY);
     led1State = EMERGENCY;
 }
