@@ -16,6 +16,7 @@ const CameraComponent = () => {
     })();
   }, []);
 
+  
   if (!hasPermission) {
     return (
       <View style={styles.permissionContainer}>
