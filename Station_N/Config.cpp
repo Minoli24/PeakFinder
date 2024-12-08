@@ -27,10 +27,11 @@ unsigned long led2Timer = 0; // Timer for managing LED 2 operations
 // Variables for mesh network communication
 painlessMesh mesh; 
 Scheduler meshScheduler;
-bool EMERGENCY = false;
+bool EMERGENCY = false; //Flag to indicate if an emergency is active
 // bool HELP = false;
-uint32_t nodeId;
+uint32_t nodeId; // Unique ID for the mesh node 
 
-int batteryPercentage = 0;
-
+// Variable to track battery percentage
+int batteryPercentage = 0; // Percentage of battery charge remaining
+// Struct to store system status information
 SystemStatus systemStatus = {false, false, false, 0, 0, 0, 0.0, 0.0};
