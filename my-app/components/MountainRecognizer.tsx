@@ -36,7 +36,7 @@ const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> 
     })();
   }, []);
 
-  
+
   const handlePrediction = async () => {
     if (model && cameraRef.current) {
       const tensor = await cameraRef.current.takePictureAsync();
@@ -47,6 +47,7 @@ const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> 
     }
   };
 
+  
   return (
     <View style={styles.overlay}>
       <Text style={styles.predictionText}>
