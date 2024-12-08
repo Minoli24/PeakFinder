@@ -19,11 +19,11 @@ struct StationInfo {
     bool isOnline;
 };
 
-// Map to store connected stations
+// Map to store connected stations 
 std::map<uint32_t, StationInfo> connectedStations;
 unsigned long lastConnectionCheck = 0;
 
-// Function to log station status
+// Function to log station status 
 void logStationStatus(bool isConnected, int stationNo, String nodeId) {
     DynamicJsonDocument statusDoc(256);
     statusDoc["station"] = stationNo;
