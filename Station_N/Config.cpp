@@ -1,7 +1,7 @@
 #include "Config.h"
 
 TinyGPSPlus gps; // Initialize the GPS module using the TinyGPSPlus library
-SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
+SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN); // Define a SoftwareSerial object for GPS communication, using the specified RX and TX pins
 
 // Define other global variables here 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
