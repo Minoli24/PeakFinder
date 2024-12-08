@@ -163,7 +163,7 @@ void setup() {
 void loop() {
     mesh.update();
 
-    // Check stations connection status periodically
+    // Check stations connection status periodically 
     unsigned long currentTime = millis();
     if (currentTime - lastConnectionCheck >= CONNECTION_CHECK_INTERVAL) {
         checkStationsConnection();
