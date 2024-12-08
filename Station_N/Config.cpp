@@ -14,7 +14,7 @@ unsigned long emergencyDuration = 0; // Tracks the duration of the emergency
 // Define the emergency display state and related timer variables
 EmergencyDisplayState emergencyDisplayState = EMERGENCY_DISPLAY_IDLE;
 unsigned long emergencyDisplayTimer = 0; // Timer for managing display updates
-const unsigned long DISPLAY_SENT_DURATION = 5000; // 5 seconds 
+const unsigned long DISPLAY_SENT_DURATION = 5000; //  Time in miliseconds for displaying sent confirmation (5 seconds)
 
 bool led1State = false;
 // bool led2State = false; 
