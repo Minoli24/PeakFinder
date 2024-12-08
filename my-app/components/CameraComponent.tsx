@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Camera } from 'expo-camera';
 import MountainRecognizer from './MountainRecognizer';
 
+
 const CameraComponent = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const cameraRef = useRef<Camera>(null);
