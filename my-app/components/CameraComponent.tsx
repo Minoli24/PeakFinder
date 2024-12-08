@@ -1,33 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
-import { RNCamera } from 'react-native-camera';
-import { classifyImage } from './ModelLoader';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Camera } from 'expo-camera';
+import MountainRecognizer from './MountainRecognizer';
 
 const CameraComponent = () => {
-  const [mountainName, setMountainName] = useState('Recognizing...');
+  const [hasPermission, setHasPermission] = useState(false);
+  const cameraRef = useRef<Camera>(null);
 
-  const handleCameraFrame = async (data: any) => {
-    try {
-      const result = await classifyImage(data);
-      setMountainName(result);
-    } catch (error) {
-      console.error('Error in classification:', error);
-      setMountainName('Error in recognition');
-    }
-  };
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  if (!hasPermission) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>Camera access is required.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <RNCamera
+      <Camera
         style={styles.camera}
-        type={RNCamera.Constants.Type.back}
-        captureAudio={false}
-        onCameraReady={() => console.log('Camera ready')}
-        onPictureTaken={(data) => handleCameraFrame(data)}
-      />
-      <View style={styles.overlay}>
-        <Text style={styles.text}>{mountainName}</Text>
-      </View>
+        type={Camera.Constants.Type.back}
+        ref={cameraRef}
+      >
+        <MountainRecognizer cameraRef={cameraRef} />
+      </Camera>
     </View>
   );
 };
@@ -39,18 +42,14 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  overlay: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontSize: 24,
-    color: '#fff',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
+  permissionText: {
+    fontSize: 18,
+    color: '#333',
   },
 });
 
