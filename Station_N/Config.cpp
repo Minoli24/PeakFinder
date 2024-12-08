@@ -23,7 +23,9 @@ bool lastButton1State = HIGH; // Last recorded state of Button 1 (HIGH indicates
 // bool lastButton2State = HIGH; // Last recorded state of Button 2 (commented out)
 unsigned long led2Timer = 0; // Timer for managing LED 2 operations
 
-painlessMesh mesh;
+
+// Variables for mesh network communication
+painlessMesh mesh; 
 Scheduler meshScheduler;
 bool EMERGENCY = false;
 // bool HELP = false;
