@@ -4,6 +4,7 @@ import { Camera } from 'expo-camera';
 import MountainRecognizer from './MountainRecognizer';
 
 
+
 const CameraComponent = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const cameraRef = useRef<Camera>(null);

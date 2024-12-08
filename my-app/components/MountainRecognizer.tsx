@@ -7,6 +7,7 @@ import { TensorCamera } from '@tensorflow/tfjs-react-native';
 
 
 
+
 const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> }) => {
   const [model, setModel] = useState<tf.LayersModel | null>(null);
   const [prediction, setPrediction] = useState('');
