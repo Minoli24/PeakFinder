@@ -100,7 +100,7 @@ void newConnectionCallback(uint32_t nodeId) {
     mesh.sendSingle(nodeId, msg);
 }
 
-// Callback for dropped connections
+// Callback for dropped connections 
 void droppedConnectionCallback(uint32_t nodeId) {
     if (connectedStations.find(nodeId) != connectedStations.end()) {
         logStationStatus(false,
