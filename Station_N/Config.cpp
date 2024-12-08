@@ -16,11 +16,12 @@ EmergencyDisplayState emergencyDisplayState = EMERGENCY_DISPLAY_IDLE;
 unsigned long emergencyDisplayTimer = 0; // Timer for managing display updates
 const unsigned long DISPLAY_SENT_DURATION = 5000; //  Time in miliseconds for displaying sent confirmation (5 seconds)
 
-bool led1State = false;
-// bool led2State = false; 
-bool lastButton1State = HIGH;
-// bool lastButton2State = HIGH; 
-unsigned long led2Timer = 0;
+//Variables to manage LED states and button inputs
+bool led1State = false; //State of LED 1
+// bool led2State = false; // State of LED 2 (Commented out)
+bool lastButton1State = HIGH; // Last recorded state of Button 1 (HIGH indicates not pressed)
+// bool lastButton2State = HIGH; // Last recorded state of Button 2 (commented out)
+unsigned long led2Timer = 0; // Timer for managing LED 2 operations
 
 painlessMesh mesh;
 Scheduler meshScheduler;
