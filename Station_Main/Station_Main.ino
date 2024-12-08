@@ -6,7 +6,7 @@
 #define MESH_PASSWORD   "meshPassword"
 #define MESH_PORT       5555
 
-#define CONNECTION_CHECK_INTERVAL 30000  // Check connection every 30 seconds
+#define CONNECTION_CHECK_INTERVAL 30000  // Check connection every 30 seconds   
 #define NODE_TIMEOUT 60000              // Consider node offline after 60 seconds
 
 painlessMesh mesh;
