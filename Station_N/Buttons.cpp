@@ -24,7 +24,7 @@ void handleButtonPress(int buttonPin, bool &lastButtonState) {
 }
 
 void handleLEDStates() {
-    // LED1 is controlled by EMERGENCY state
+    // LED1 is controlled by EMERGENCY state 
     if (!EMERGENCY && led1State) {
         led1State = false;
         digitalWrite(LED1_PIN, LOW);
