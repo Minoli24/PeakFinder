@@ -1,6 +1,6 @@
 #include "Config.h"
 
-TinyGPSPlus gps;
+TinyGPSPlus gps; // Initialize the GPS module using the TinyGPSPlus library
 SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
 
 // Define other global variables here 
