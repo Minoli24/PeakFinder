@@ -7,7 +7,7 @@ let model: tf.LayersModel | null = null;
 export const loadModel = async () => {
   if (!model) {
     const modelJSON = require('../assets/trained_model/model.json');
-    const modelWeights = require('../assets/trained_model/group1-shard1of1.bin');
+    const modelWeights = require('../assets/trained_model/model.bin');
     model = await tf.loadLayersModel(bundleResourceIO(modelJSON, modelWeights));
     console.log('Model loaded successfully');
   }
