@@ -5,6 +5,7 @@ import * as tf from '@tensorflow/tfjs';
 import { bundleResourceIO } from '@tensorflow/tfjs-react-native';
 import { TensorCamera } from '@tensorflow/tfjs-react-native';
 
+
 const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> }) => {
   const [model, setModel] = useState<tf.LayersModel | null>(null);
   const [prediction, setPrediction] = useState('');
@@ -21,7 +22,7 @@ const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> 
     'SriPada',
     'Yahangala',
   ];
-  
+
 
   useEffect(() => {
     (async () => {
