@@ -11,7 +11,7 @@ void setupButtons() {
 void handleButtonPress(int buttonPin, bool &lastButtonState) {
     bool currentButtonState = !digitalRead(buttonPin);
 
-    if (currentButtonState && !lastButtonState) {  // Button just pressed
+    if (currentButtonState && !lastButtonState) {  // Button just pressed 
         if (buttonPin == BUTTON1_PIN) {
             EMERGENCY = true;  // Set emergency state
             led1State = true;  // Update LED1 state to match EMERGENCY
