@@ -21,6 +21,7 @@ const MountainRecognizer = ({ cameraRef }: { cameraRef: React.RefObject<Camera> 
     'SriPada',
     'Yahangala',
   ];
+  
 
   useEffect(() => {
     (async () => {
