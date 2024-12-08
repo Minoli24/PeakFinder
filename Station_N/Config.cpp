@@ -7,7 +7,7 @@ SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN); // Define a SoftwareSerial obj
 // Initialize the OLED display with specified width, height, and I2C configuration
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-
+// Variables to track emergency state timing
 unsigned long emergencyStartTime = 0;
 unsigned long emergencyDuration = 0;
 EmergencyDisplayState emergencyDisplayState = EMERGENCY_DISPLAY_IDLE;
