@@ -6,7 +6,7 @@ const float MIN_BATTERY_VOLTAGE = 6.0;
 
 const float VOLTAGE_DIVIDER_RATIO = MAX_BATTERY_VOLTAGE / PIN_VOLTAGE;
 
-// Parameters for stable reading
+// Parameters for stable reading 
 static float smoothedVoltage = 0;
 static const int REQUIRED_SAMPLES = 10;     // Number of consistent readings needed before changing
 static const float VOLTAGE_THRESHOLD = 0.1; // Minimum voltage change to consider updating
