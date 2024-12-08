@@ -11,7 +11,7 @@ unsigned long emergencyStartTime = 0;
 unsigned long emergencyDuration = 0;
 EmergencyDisplayState emergencyDisplayState = EMERGENCY_DISPLAY_IDLE;
 unsigned long emergencyDisplayTimer = 0;
-const unsigned long DISPLAY_SENT_DURATION = 5000; // 5 seconds
+const unsigned long DISPLAY_SENT_DURATION = 5000; // 5 seconds 
 
 bool led1State = false;
 // bool led2State = false;
