@@ -35,3 +35,13 @@ uint32_t nodeId; // Unique ID for the mesh node
 int batteryPercentage = 0; // Percentage of battery charge remaining
 // Struct to store system status information
 SystemStatus systemStatus = {false, false, false, 0, 0, 0, 0.0, 0.0};
+
+//System Status Information 
+// false - GPS status (false = not connected)
+// false - Mesh network status (false = not connected)
+// false - OLED display status (false = not initialized)
+// 0 - Number of messages sent
+// 0 - Number of messages received
+// 0 - Number of emergency messages
+// 0.0 - Latitude (GPS coordinate)
+// 0.0 - Longitude (GPS coordinate)
