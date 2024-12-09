@@ -20,7 +20,7 @@ const CameraComponent = () => {
   if (!hasPermission) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>Camera access is required.</Text>
+        <Text style={styles.permissionText}>Camera access is required please.</Text>
       </View>
     );
   }
