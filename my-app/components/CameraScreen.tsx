@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import * as tf from '@tensorflow/tfjs';
 import { bundleResourceIO } from '@tensorflow/tfjs-react-native';
+import RNFS from 'react-native-fs';
 
 const CameraScreen = () => {
   const [isModelReady, setIsModelReady] = useState(false);
