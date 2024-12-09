@@ -21,10 +21,6 @@ import Animated from 'react-native-reanimated';
 import {useCustomNavigation} from '../../hooks/useCustomNavigation';
 import {routeNames} from '../../navigation/config/routeNames';
 import {firebaseCollections} from '../../constants/firebaseCollections';
-import {stackNames} from '../../navigation/config/stackNames';
-import {useMMKVString} from 'react-native-mmkv';
-import useNavigationStateStore from '../../store/navigationStore';
-import {storage} from '../../localStorage/mmkvStorage';
 
 // Validation Schema using Yup for Login (email & password)
 const validationSchema = Yup.object().shape({
@@ -45,11 +41,9 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [secureText, setSecureText] = useState(false);
-  const [userId, setUserid] = useMMKVString('userId');
-  // const [userName, setUsername] = useMMKVString('userName');
 
   const navigation = useCustomNavigation();
-  const {setIsAuthenticated, setUsername} = useNavigationStateStore();
+
   // Login User function
   const handleLogin = async (values: any) => {
     setLoading(true);
@@ -69,18 +63,11 @@ const LoginScreen = () => {
         .collection(firebaseCollections.usersCollection)
         .doc(user.uid)
         .get();
-      console.log('usee', userDoc.data().name);
 
       if (userDoc.exists) {
         setUserData(userDoc.data());
-        setUserid(user.uid);
-        //@ts-ignore
-        setUsername(userDoc.data().name);
-        storage.set('userName', userDoc.data().name);
         console.log('User data retrieved from Firestore:', userDoc.data());
-        // navigation.navigate(stackNames.tabStack);
         ToastAndroid.show('Login Successful', 2000);
-        setIsAuthenticated(true);
       } else {
         ToastAndroid.show('User data not found in Firestore.', 2000);
       }
@@ -146,8 +133,6 @@ const LoginScreen = () => {
                           textInputProps={{
                             placeholder: 'Email',
                             style: styles.input,
-                            keyboardType: 'email-address',
-                            autoCapitalize: 'none',
                           }}
                           error={touched.email && !!errors.email}
                           bottomText={touched.email && errors.email}
@@ -260,16 +245,14 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-
+    flex: 1,
     backgroundColor: colors.white,
-    opacity: 0.5,
     borderColor: 'transparent',
     borderWidth: 0,
-    color: colors.black,
   },
   inputPassword: {
     width: '100%',
-
+    flex: 1,
     backgroundColor: colors.white,
     opacity: 0.5,
     borderColor: 'transparent',
