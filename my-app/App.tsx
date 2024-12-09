@@ -27,8 +27,8 @@ const App = () => {
       // Load the model
       const model = await tf.loadLayersModel(
         bundleResourceIO(
-          require('./assets/model.json'),
-          require('./assets/model.bin')
+          require('./assets/trained_model/model.json'),
+          require('./assets/trained_model/model.bin')
         )
       );
       setModel(model);
