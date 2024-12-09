@@ -45,16 +45,26 @@ const CameraScreen = () => {
     const options = { quality: 0.5, base64: true };
     const data = await cameraRef.current.takePictureAsync(options);
   
-    const imageTensor = decodeImage(data.base64, 3) // Decode Base64 to Tensor
+    // Step 1: Write the base64 image to a temporary file
+    const imagePath = `${RNFS.TemporaryDirectoryPath}/photo.jpg`;
+    await RNFS.writeFile(imagePath, data.base64, 'base64');
+  
+    // Step 2: Create a Tensor from the image file
+    const imageAssetPath = Image.resolveAssetSource({ uri: imagePath });
+    const imageTensor = tf.browser.fromPixels(imageAssetPath)
       .resizeNearestNeighbor([224, 224])
       .expandDims(0)
       .toFloat()
       .div(tf.scalar(255));
   
+    // Step 3: Make predictions
     const predictions = model.predict(imageTensor) as tf.Tensor;
     const predictedIndex = predictions.argMax(-1).dataSync()[0];
   
     setRecognizedMountain(mountainNames[predictedIndex]);
+  
+    // Step 4: Clean up the temporary file
+    await RNFS.unlink(imagePath);
   };
   return (
     <View style={styles.container}>
