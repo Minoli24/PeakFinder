@@ -29,7 +29,6 @@ const TextInput = (props: TextInputProps) => {
           borderRadius: 40,
         }}
         value={props.value}
-        {...props.textInputProps}
         underlineStyle={{
           display: 'none',
         }}
@@ -44,6 +43,8 @@ const TextInput = (props: TextInputProps) => {
         }}
         left={props.leftIcon}
         right={props.rightIcon}
+        label={props.label}
+        {...props.textInputProps}
       />
       {props.bottomText && (
         <Text
