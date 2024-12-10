@@ -1,4 +1,4 @@
-import serial
+import serial # For communication with serial devices (like ESP32-S3)
 import json
 import time
 import sys
