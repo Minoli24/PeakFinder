@@ -2,7 +2,7 @@ import serial # For communication with serial devices (like ESP32-S3)
 import json # For parsing JSON data.
 import time # To introduce delays.
 import sys # For system-level operations, like exiting the script.
-import requests
+import requests # For sending HTTP requests to an API.
 from rich import print, print_json
 import logging
 from rich.logging import RichHandler
