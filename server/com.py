@@ -4,7 +4,7 @@ import time # To introduce delays.
 import sys # For system-level operations, like exiting the script.
 import requests # For sending HTTP requests to an API.
 from rich import print, print_json # For visually appealing console output.
-import logging
+import logging # For logging messages to the console or a file.
 from rich.logging import RichHandler
 from rich.pretty import pprint
 
