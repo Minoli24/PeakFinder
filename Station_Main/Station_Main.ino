@@ -25,7 +25,7 @@ unsigned long lastConnectionCheck = 0;
 
 // Function to log station status 
 void logStationStatus(bool isConnected, int stationNo, String nodeId) {
-    DynamicJsonDocument statusDoc(256);
+    DynamicJsonDocument statusDoc(256); 
     statusDoc["station"] = stationNo;
     statusDoc["online"] = isConnected;
     statusDoc["nodeId"] = nodeId;
