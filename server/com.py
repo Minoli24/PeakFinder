@@ -6,7 +6,7 @@ import requests # For sending HTTP requests to an API.
 from rich import print, print_json # For visually appealing console output.
 import logging # For logging messages to the console or a file.
 from rich.logging import RichHandler # Enhances logging output with Rich.
-from rich.pretty import pprint
+from rich.pretty import pprint # For pretty printing Python data structures.
 
 # Configure logging with Rich handler
 logging.basicConfig(
