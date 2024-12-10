@@ -1,6 +1,6 @@
 import serial # For communication with serial devices (like ESP32-S3)
 import json # For parsing JSON data.
-import time
+import time # To introduce delays.
 import sys
 import requests
 from rich import print, print_json
