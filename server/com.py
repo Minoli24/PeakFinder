@@ -1,5 +1,5 @@
 import serial # For communication with serial devices (like ESP32-S3)
-import json
+import json # For parsing JSON data.
 import time
 import sys
 import requests
