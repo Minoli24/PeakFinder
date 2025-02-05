@@ -6,12 +6,12 @@
 #define MESH_PASSWORD   "meshPassword"
 #define MESH_PORT       5555
 
-#define CONNECTION_CHECK_INTERVAL 30000  // Check connection every 30 seconds
-#define NODE_TIMEOUT 60000              // Consider node offline after 60 seconds
+#define CONNECTION_CHECK_INTERVAL 30000  // Check connection every 30 seconds   
+#define NODE_TIMEOUT 60000              // Consider node offline after 60 seconds   
 
 painlessMesh mesh;
 
-// Structure to store station information
+// Structure to store station information 
 struct StationInfo {
     int stationNo;
     String nodeId;
@@ -19,13 +19,13 @@ struct StationInfo {
     bool isOnline;
 };
 
-// Map to store connected stations
+// Map to store connected stations 
 std::map<uint32_t, StationInfo> connectedStations;
 unsigned long lastConnectionCheck = 0;
 
-// Function to log station status
+// Function to log station status 
 void logStationStatus(bool isConnected, int stationNo, String nodeId) {
-    DynamicJsonDocument statusDoc(256);
+    DynamicJsonDocument statusDoc(256); 
     statusDoc["station"] = stationNo;
     statusDoc["online"] = isConnected;
     statusDoc["nodeId"] = nodeId;
@@ -100,7 +100,7 @@ void newConnectionCallback(uint32_t nodeId) {
     mesh.sendSingle(nodeId, msg);
 }
 
-// Callback for dropped connections
+// Callback for dropped connections 
 void droppedConnectionCallback(uint32_t nodeId) {
     if (connectedStations.find(nodeId) != connectedStations.end()) {
         logStationStatus(false,
@@ -163,7 +163,7 @@ void setup() {
 void loop() {
     mesh.update();
 
-    // Check stations connection status periodically
+    // Check stations connection status periodically 
     unsigned long currentTime = millis();
     if (currentTime - lastConnectionCheck >= CONNECTION_CHECK_INTERVAL) {
         checkStationsConnection();
