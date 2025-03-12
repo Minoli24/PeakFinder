@@ -33,7 +33,7 @@ const PredictionResultScreen: React.FC<PredictionResultScreenProps> = ({ route }
   
       console.log("Sending Payload:", JSON.stringify(payload, null, 2));
   
-      const response = await fetch("http://192.168.1.18:5000/predict/travel", {
+      const response = await fetch("http://192.168.1.6:5000/predict/travel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),  //  Send named keys instead of an array

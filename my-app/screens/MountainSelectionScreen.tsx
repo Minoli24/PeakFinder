@@ -291,12 +291,16 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Modal,
+  TextInput,
+  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { RootStackParamList } from "../App"; // Adjust if necessary
+import { RootStackParamList } from "../App";
+ // Adjust if necessary
 
 // Define available mountains
 const mountains = [
@@ -350,11 +354,24 @@ const MountainSelectionScreen = () => {
   const [trailConditions, setTrailConditions] = useState<any[]>([]);
   const [weeklyForecast, setWeeklyForecast] = useState<any[]>([]);
  const [selectedDay, setSelectedDay] = useState(0); // 0 = Today
-
+////////////////////////////////////////////////////////////////////////
+const [searchText, setSearchText] = useState("");
+const [filteredMountains, setFilteredMountains] = useState(mountains);
+const [isModalVisible, setModalVisible] = useState(false);
+////////////////////////////////////////////////////////////////////
 
   // API keys & URLs
   const WEATHER_API_KEY = "5b1d50dc4c9d25a46417835c506a0644";
-  const FLASK_API_URL = "http://192.168.1.18:5000/predict/classifier";
+  const FLASK_API_URL = "http://192.168.1.6:5000/predict/classifier";
+
+    // Function to handle search
+    const handleSearch = (text: string) => {
+      setSearchText(text);
+      const filtered = mountains.filter((mountain) =>
+        mountain.name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredMountains(filtered);
+    };
 
   const fetchWeatherEncoding = async () => {
     try {
@@ -437,95 +454,156 @@ const MountainSelectionScreen = () => {
     fetchWeatherEncoding();
   }, [selectedMountain]);
 
-  return (
-    
-    <View style={styles.container}>
-      <Text style={styles.header}>Select a Mountain</Text>
-      <Picker
-        selectedValue={selectedMountain.name}
-        onValueChange={(itemValue) => {
-          const mountain = mountains.find((m) => m.name === itemValue);
-          if (mountain) {
-            setSelectedMountain(mountain);
-            setDifficulty(mountain.difficulty);
-            setDifficultyEncoded(mountain.difficultyEncoded);
-            setElevation(mountain.elevation);
-          }
-        }}
-        style={styles.picker}
-      >
-        {mountains.map((mountain, index) => (
-          <Picker.Item key={index} label={mountain.name} value={mountain.name} />
-        ))}
-      </Picker>
+//   
+return (
+  <View style={styles.container}>
+    <Text style={styles.header}>Select a Mountain</Text>
 
-      <Text style={styles.label}>Elevation: {elevation}m</Text>
-      <Text style={styles.label}>Difficulty: {difficulty} (Encoded: {difficultyEncoded})</Text>
-      <Text style={styles.label}>Weather: {weatherCondition} (Encoded: {weatherEncoded})</Text>
-      <Text style={styles.label}>Temperature: {temperature} °C</Text>
-      <Text style={styles.label}>Humidity: {humidity}%</Text>
+    {/* Searchable Text Input */}
+    <TouchableOpacity
+      style={styles.searchInputContainer}
+      onPress={() => setModalVisible(true)}
+    >
+      <Text style={styles.searchInputText}>{selectedMountain.name}</Text>
+    </TouchableOpacity>
 
-      {trailConditions.map((forecast, index) => (
-        <Text key={index} style={styles.label}>
-          Trail Condition {forecast.time}: {forecast.condition}
-        </Text>
-      ))}
+    {/* Modal for Searchable List */}
+    <Modal visible={isModalVisible} animationType="slide" transparent>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search Mountain..."
+            value={searchText}
+            onChangeText={handleSearch}
+          />
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("PredictionResult", {
-        mountain: {
-          name: selectedMountain.name,
-          elevation,
-          difficulty: difficultyEncoded,
-          weatherEncoded,
-          temperature,
-          humidity,
-          trailConditions,
-        },
-        restStops: Number(restStops),
-        travelMode: selectedTravelMode,
-      })}>
-        <Text style={styles.buttonText}>Show Distance and Time</Text>
-      </TouchableOpacity>
+          {/* List of Mountains */}
+          <FlatList
+            data={filteredMountains}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.listItem}
+                onPress={() => {
+                  setSelectedMountain(item);
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.listItemText}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
 
+          {/* Close Button */}
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text style={styles.closeButton}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
 
-      <Text style={styles.subHeader}>Weekly Forecast</Text>
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
-    {weeklyForecast.map((dayData, index) => (
-      <TouchableOpacity
-        key={index}
-        style={[styles.dateButton, selectedDay === index ? styles.selectedDateButton : {}]}
-        onPress={() => setSelectedDay(index)}
-      >
-        <Text style={styles.dateText}>{dayData.day}</Text>
-      </TouchableOpacity>
+   {/* Mountain Details */}
+   <Text style={styles.label}>Elevation: {selectedMountain.elevation}m</Text>
+    <Text style={styles.label}>Difficulty: {selectedMountain.difficulty} (Encoded: {difficultyEncoded})</Text>
+    <Text style={styles.label}>Weather: {weatherCondition} (Encoded: {weatherEncoded})</Text>
+    <Text style={styles.label}>Temperature: {temperature} °C</Text>
+    <Text style={styles.label}>Humidity: {humidity}%</Text>
+
+    {trailConditions.map((forecast, index) => (
+      <Text key={index} style={styles.label}>
+        Trail Condition {forecast.time}: {forecast.condition}
+      </Text>
     ))}
-  </ScrollView>
 
-  {weeklyForecast.length > 0 && (
-    <View>
-      <Text style={styles.label}>Weather: {weeklyForecast[selectedDay].weather}</Text>
-      <Text style={styles.label}>Temperature: {weeklyForecast[selectedDay].temp} °C</Text>
-      <Text style={styles.label}>Humidity: {weeklyForecast[selectedDay].humidity}%</Text>
+    {/* Navigation Button */}
+    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("PredictionResult", {
+      mountain: {
+        name: selectedMountain.name,
+        elevation,
+        difficulty: difficultyEncoded,
+        weatherEncoded,
+        temperature,
+        humidity,
+        trailConditions,
+      },
+      restStops: Number(restStops),
+      travelMode: selectedTravelMode,
+    })}>
+      <Text style={styles.buttonText}>Show Distance and Time</Text>
+    </TouchableOpacity>
 
-      
-    </View>
-  )}
-    </View>
-    
-  );
+    {/* Weekly Forecast */}
+    <Text style={styles.subHeader}>Weekly Forecast</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
+      {weeklyForecast.map((dayData, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[styles.dateButton, selectedDay === index ? styles.selectedDateButton : {}]}
+          onPress={() => setSelectedDay(index)}
+        >
+          <Text style={styles.dateText}>{dayData.day}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+
+    {weeklyForecast.length > 0 && (
+      <View>
+        <Text style={styles.label}>Weather: {weeklyForecast[selectedDay].weather}</Text>
+        <Text style={styles.label}>Temperature: {weeklyForecast[selectedDay].temp} °C</Text>
+        <Text style={styles.label}>Humidity: {weeklyForecast[selectedDay].humidity}%</Text>
+      </View>
+    )}
+  </View>
+);
 };
+
 
 // Styles
 const styles = StyleSheet.create({
+  // container: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   backgroundColor: "#f2f2f2",
+  // },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f2f2f2",
+    paddingTop: 50,
   },
-  header: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
-  picker: { height: 50, width: 250 },
-  label: { fontSize: 16, marginTop: 10 },
+  header: { 
+    fontSize: 20, 
+    fontWeight: "bold", 
+    marginBottom: 10 
+  },
+  pickerContainer: {
+    width: "90%", 
+    backgroundColor: "#ffffff", // Ensures white clean background
+    borderRadius: 8, 
+    paddingHorizontal: 5, 
+    marginBottom: 15, 
+    borderWidth: 1, 
+    borderColor: "#ccc",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2, // For Android shadow
+  },
+  picker: {
+    height: 50, 
+    width: "100%", 
+    backgroundColor: "transparent", // Fixes extra gray background
+    color: "#333", // Ensures text is visible
+  },
+
+  label: { 
+    fontSize: 16, 
+    marginTop: 10 
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -556,6 +634,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
   },
+
+  // Search Input Button (Replaces Dropdown)
+  searchInputContainer: {
+    width: "90%",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  searchInputText: {
+    fontSize: 16,
+    color: "#333",
+  },
+
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent background
+  },
+
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "80%",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  searchInput: {
+    width: "100%",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+
+  listItem: {
+    padding: 15,
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+
+  listItemText: {
+    fontSize: 16,
+  },
+
+  closeButton: {
+    marginTop: 10,
+    color: "#007BFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+ 
 });
 
 export default MountainSelectionScreen;
