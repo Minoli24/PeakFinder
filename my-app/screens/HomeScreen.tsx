@@ -10,6 +10,8 @@ import {
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { StackScreenProps } from "@react-navigation/stack";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons"; // Import icons
 import { RootStackParamList } from "../App"; // Import navigation types
 import * as Location from 'expo-location';
 // Define TypeScript type for navigation props
@@ -258,18 +260,20 @@ console.log("Extracted Weather:", weatherMain);
 
   return (
     <View style={styles.container}>
+     
       <ImageBackground source={require("../assets/trail_background.jpg")} style={styles.backgroundImage}>
         {loading ? (
           <ActivityIndicator size="large" color="#ffffff" />
         ) : (
           <View style={styles.card}>
-            <Text style={styles.city}>{city || "Fetching location..."}</Text>
+            <Text style={styles.city}><Ionicons name="location-sharp" size={22} color="#ff9f1c" /> {city || "Fetching location..."}
+           </Text>
             {weatherData.map((forecast, index) => (
               <View key={index} style={styles.trailBox}>
                 <Text style={styles.time}>{forecast.time}</Text>
-                <Text style={styles.weather}>Weather: {forecast.weather}</Text>
+                <Text style={styles.weather}><Ionicons name="cloud-outline" size={20} color="#666" /> {forecast.weather}</Text>
                 <Text style={styles.temp}>{forecast.temp}°C</Text>
-                <Text style={styles.details}>Humidity: {forecast.humidity}%</Text>
+                <Text style={styles.details}> <Ionicons name="water-outline" size={18} color="#666" /> {forecast.humidity}%</Text>
                 <Text style={styles.trailText}>Trail Condition: {forecast.condition}</Text>
                 <Text style={styles.safetyMessage}>{forecast.safetyMessage}</Text>
               </View>
@@ -288,6 +292,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f2f2",
+    width: "100%",
+    height: "10%",
   },
   backgroundImage: {
     flex: 1,
@@ -296,7 +302,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: "white",
+    //backgroundColor: "white",
     width: "90%",
     borderRadius: 20,
     padding: 20,
@@ -308,20 +314,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   city: {
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: "bold",
   },
   time: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
     color: "#333",
   },
   weather: {
-    fontSize: 16,
+    fontSize: 14,
     color: "gray",
   },
   temp: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "bold",
     color: "#ff9f1c",
   },
@@ -332,11 +338,13 @@ const styles = StyleSheet.create({
   },
   trailBox: {
     marginTop: 10,
-    padding: 15,
+    padding: 12,
     backgroundColor: "#eee",
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
-    width: "100%",
+    width: "90%",
+    alignSelf: "center",
+    elevation: 2, // Soft shadow effect
   },
   trailText: {
     fontSize: 20,
@@ -363,7 +371,7 @@ const styles = StyleSheet.create({
   },
 
   safetyMessage: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#d9534f", // Red color for warnings
     fontWeight: "bold",
     marginTop: 5,
