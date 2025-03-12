@@ -11,9 +11,10 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../App"; // Import navigation types
-
+import * as Location from 'expo-location';
 // Define TypeScript type for navigation props
 type HomeScreenProps = StackScreenProps<RootStackParamList, "Home">;
+
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenProps["navigation"]>();
@@ -33,25 +34,48 @@ export default function HomeScreen() {
   }, []);
 
   // Get user location
+  // const getLocationPermission = async () => {
+  //   try {
+  //     if (navigator.geolocation) {
+  //       navigator.geolocation.getCurrentPosition(
+  //         (position) => {
+  //           const { latitude, longitude } = position.coords;
+  //           fetchCityName(latitude, longitude);
+  //           fetchWeatherData(latitude, longitude);
+  //         },
+  //         (error) => {
+  //           alert("Error fetching location. Enable location services.");
+  //           console.error("Location Error:", error);
+  //         }
+  //       );
+  //     } else {
+  //       alert("Geolocation is not supported by this browser.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Location Permission Error:", error);
+  //   }
+  // };
+
   const getLocationPermission = async () => {
     try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            fetchCityName(latitude, longitude);
-            fetchWeatherData(latitude, longitude);
-          },
-          (error) => {
-            alert("Error fetching location. Enable location services.");
-            console.error("Location Error:", error);
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by this browser.");
+      // Request location permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert("Permission Denied: Enable location services in settings.");
+        return;
       }
+  
+      // Get current location
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      
+      console.log("📍 Location:", latitude, longitude);
+      
+      fetchCityName(latitude, longitude);
+      fetchWeatherData(latitude, longitude);
     } catch (error) {
       console.error("Location Permission Error:", error);
+      alert("Error fetching location.");
     }
   };
 
@@ -169,12 +193,38 @@ console.log("Extracted Weather:", weatherMain);
 
           console.log("✅ ML Model Response:", response.data);
 
+          const trailCondition = response.data.prediction[0];
+
+        // Define safety messages based on trail condition
+        let safetyMessage = "";
+        switch (trailCondition) {
+          case "Dry":
+            safetyMessage = "The trail is dry and safe for hiking. Carry enough water and sunscreen.";
+            break;
+          case "Wet":
+            safetyMessage = "The trail is wet and might be slippery. Wear shoes with good grip.";
+            break;
+          case "Muddy":
+            safetyMessage = "The trail is muddy and can be challenging. Avoid steep slopes and use trekking poles.";
+            break;
+          // case "Snowy":
+          //   safetyMessage = "The trail is covered in snow. Use winter gear and be cautious of icy patches.";
+          //   break;
+          // case "Stormy":
+          //   safetyMessage = "Stormy conditions detected. It's advised to avoid hiking until weather improves.";
+          //   break;
+          default:
+            safetyMessage = "Trail conditions unknown. Check with local authorities before proceeding.";
+        }
+
+
           return {
             time: forecast.time,
             weather: weatherMain,
             temp: main.temp,
             humidity: main.humidity,
             condition: response.data.prediction[0],
+            safetyMessage: safetyMessage,
           };
         })
       );
@@ -221,6 +271,7 @@ console.log("Extracted Weather:", weatherMain);
                 <Text style={styles.temp}>{forecast.temp}°C</Text>
                 <Text style={styles.details}>Humidity: {forecast.humidity}%</Text>
                 <Text style={styles.trailText}>Trail Condition: {forecast.condition}</Text>
+                <Text style={styles.safetyMessage}>{forecast.safetyMessage}</Text>
               </View>
             ))}
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("MountainSelection")}>
@@ -310,8 +361,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-});
 
+  safetyMessage: {
+    fontSize: 14,
+    color: "#d9534f", // Red color for warnings
+    fontWeight: "bold",
+    marginTop: 5,
+    textAlign: "center",
+  },
+  
+});
 
 
 

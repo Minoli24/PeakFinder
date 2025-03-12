@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+
 import { RootStackParamList } from "../App"; // Adjust the path to where your RootStackParamList is defined
 
 // Define props for this screen

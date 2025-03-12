@@ -4,20 +4,31 @@
     "slug": "peakfinder",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android","web"],
-    "sdkVersion": "49.0.0",
-    "permissions": [
-      "ACCESS_FINE_LOCATION",
-      "ACCESS_COARSE_LOCATION"
-    ],
+    "platforms": ["ios", "android", "web"],
+    "sdkVersion": "52.0.0",
     "ios": {
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to fetch weather data.",
-        "NSLocationAlwaysUsageDescription": "Your location helps us provide accurate weather predictions."
+        "NSLocationAlwaysUsageDescription": "Your location helps us provide accurate weather predictions.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to provide the best user experience.",
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
-    }
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow PeakFinder to access your location.",
+          "locationWhenInUsePermission": "Allow PeakFinder to access your location while using the app."
+        }
+      ]
+    ]
   }
 }
