@@ -29,7 +29,7 @@ export default function HomeScreen() {
 
   const API_KEY = "5b1d50dc4c9d25a46417835c506a0644"; // OpenWeather API Key
   //const FLASK_API_URL = "http://192.168.1.18:5000/predict/classifier"; // Flask API
-  const FLASK_API_URL = "http://192.168.1.6:5000/predict/classifier";
+  const FLASK_API_URL = "http://192.168.1.19:5000/predict/classifier";
 
   useEffect(() => {
     getLocationPermission();
