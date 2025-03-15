@@ -2,15 +2,18 @@ import {StyleSheet, View} from 'react-native';
 import React from 'react';
 
 import MapWithMarkers from '../../components/customComponents/MapWithMarkers';
+import {calculateInitialRegion} from '../../utils/calculateInitialRegion';
 
 const PathMapView = ({route}: any) => {
   const {pathItem, mountainData} = route.params;
-
+  const initialRegion = calculateInitialRegion(pathItem.markers);
+  console.log('Initial Region', initialRegion);
   return (
     <View style={{flex: 1}}>
       <MapWithMarkers
+        showRating={false}
         flex={1}
-        region={mountainData.initialLongLat}
+        region={initialRegion}
         markers={pathItem.markers}
         draggable={false}
       />
