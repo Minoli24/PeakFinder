@@ -1,5 +1,5 @@
 import {StyleSheet, View, Button, Alert} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
 import ScrollViewWrapper from '../../components/wrappers/ScrollViewWrapper';
@@ -11,7 +11,8 @@ import TextInput from '../../components/customComponents/TextInput';
 import {routeNames} from '../../navigation/config/routeNames';
 import {useCustomNavigation} from '../../hooks/useCustomNavigation';
 import ContainedButton from '../../components/customComponents/ContainedButton';
-
+import database from '@react-native-firebase/database';
+import {Checkbox, Text} from 'react-native-paper';
 // Yup validation schema
 const validationSchema = Yup.object().shape({
   pathName: Yup.string()
@@ -20,9 +21,10 @@ const validationSchema = Yup.object().shape({
   description: Yup.string()
     .required('Description is required')
     .max(50, 'Max length is 50 characters'),
-  distance: Yup.string()
+  distance: Yup.number()
     .required('Distance is required')
-    .max(50, 'Max length is 50 characters'),
+    .min(1, 'Min distance is 1 km')
+    .max(10, 'Max distance is 10 km'),
   bikeMins: Yup.number()
     .positive('Must be a positive number')
 
@@ -48,6 +50,46 @@ const PathDetailsAddScreen = ({route}: any) => {
   const {mountainData} = route.params; // Getting the mountain data passed via route params
 
   const navigation = useCustomNavigation();
+  const [device1Data, setDevice1Data] = useState(null);
+  const [device2Data, setDevice2Data] = useState(null);
+
+  const getDeviceData = async () => {
+    console.log('Calll');
+    try {
+      console.log('Ca1');
+
+      database()
+        .ref('stations')
+        .once('value', snapshot => {
+          console.log('Ca2');
+          const data = snapshot.val();
+          console.log('aa1111', data['1']);
+          const device1 = {
+            latitude: data['1'].lat,
+            longitude: data['1'].lng,
+            isDevice: true,
+          };
+
+          const device2 = {
+            latitude: data['2'].lat,
+            longitude: data['2'].lng,
+            isDevice: true,
+          };
+          setDevice1Data(device1);
+          setDevice2Data(device2);
+        });
+    } catch (error) {
+      console.log('Ca222');
+
+      console.log('Error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (mountainData.mountainId == 6) {
+      getDeviceData();
+    }
+  }, [mountainData]);
 
   return (
     <SafeAreaWrapper>
@@ -66,6 +108,8 @@ const PathDetailsAddScreen = ({route}: any) => {
               bioDiversity: '',
               climaticZone: '',
               specialPlaces: '',
+              hasAnimals: 'No',
+              hasWater: 'No',
             }}
             validationSchema={validationSchema}
             onSubmit={values => {
@@ -82,6 +126,8 @@ const PathDetailsAddScreen = ({route}: any) => {
                 navigation.navigate(routeNames.PathCreateScreen, {
                   values,
                   mountainData,
+                  device1Data,
+                  device2Data,
                 });
               }
             }}>
@@ -89,6 +135,7 @@ const PathDetailsAddScreen = ({route}: any) => {
               handleChange,
               handleBlur,
               handleSubmit,
+              setFieldValue,
               values,
               errors,
               touched,
@@ -221,13 +268,13 @@ const PathDetailsAddScreen = ({route}: any) => {
                 {/* Distance */}
                 <View style={{marginBottom: 20}}>
                   <TextInput
-                    label="Distance"
+                    label="Distance(One Way)"
                     value={values.distance}
                     onBlur={handleBlur('distance')}
                     onChangeText={handleChange('distance')}
                     textInputProps={{
                       outlineStyle: {borderRadius: 10},
-                      keyboardType: 'number-pad',
+                      keyboardType: 'numeric',
                     }}
                     error={touched.distance && !!errors.distance}
                     bottomText={touched.distance && errors.distance}
@@ -269,6 +316,64 @@ const PathDetailsAddScreen = ({route}: any) => {
                   />
                 </View>
 
+                <View style={{marginBottom: 20}}>
+                  <Text>Has Animals?</Text>
+                  <View
+                    style={{
+                      marginTop: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 20,
+                    }}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Checkbox
+                        status={
+                          values.hasAnimals === 'Yes' ? 'checked' : 'unchecked'
+                        }
+                        onPress={() => setFieldValue('hasAnimals', 'Yes')}
+                      />
+                      <Text>Yes</Text>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Checkbox
+                        status={
+                          values.hasAnimals === 'No' ? 'checked' : 'unchecked'
+                        }
+                        onPress={() => setFieldValue('hasAnimals', 'No')}
+                      />
+                      <Text>No</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={{marginBottom: 20}}>
+                  <Text>Is Water Available?</Text>
+                  <View
+                    style={{
+                      marginTop: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 20,
+                    }}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Checkbox
+                        status={
+                          values.hasWater === 'Yes' ? 'checked' : 'unchecked'
+                        }
+                        onPress={() => setFieldValue('hasWater', 'Yes')}
+                      />
+                      <Text>Yes</Text>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Checkbox
+                        status={
+                          values.hasWater === 'No' ? 'checked' : 'unchecked'
+                        }
+                        onPress={() => setFieldValue('hasWater', 'No')}
+                      />
+                      <Text>No</Text>
+                    </View>
+                  </View>
+                </View>
                 {/* Submit Button */}
                 <View style={{marginTop: 20}}>
                   <ContainedButton
