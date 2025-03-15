@@ -2,13 +2,26 @@ import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {Icon} from 'react-native-paper';
 
-const CustomMarker = ({markerIndex, isEndPoint}: any) => {
+const CustomMarker = ({
+  markerIndex,
+  isEndPoint,
+  isSpecialPlace,
+  isDevice,
+}: any) => {
   console.log(isEndPoint);
   return (
     <View>
       {isEndPoint ? (
         <>
           <Icon source={'map-marker-radius'} size={35} color={'red'} />
+        </>
+      ) : isSpecialPlace ? (
+        <>
+          <Icon source={'image-marker'} size={35} color={'red'} />
+        </>
+      ) : isDevice ? (
+        <>
+          <Icon source={'cellphone-wireless'} size={35} color={'red'} />
         </>
       ) : (
         <View
