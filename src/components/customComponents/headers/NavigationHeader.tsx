@@ -22,7 +22,13 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
     <View style={styles.container}>
       <IconButton icon="arrow-left" size={25} onPress={handleBackPress} />
       <View style={styles.titleContainer}>
-        <Text variant="bold" fontSize={17} numberOfLines={2}>
+        <Text
+          variant="bold"
+          fontSize={17}
+          numberOfLines={2}
+          style={{
+            textAlign: 'center',
+          }}>
           {title}
         </Text>
       </View>
