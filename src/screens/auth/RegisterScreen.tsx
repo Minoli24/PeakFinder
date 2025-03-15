@@ -21,6 +21,7 @@ import {useCustomNavigation} from '../../hooks/useCustomNavigation';
 import {routeNames} from '../../navigation/config/routeNames';
 import Animated from 'react-native-reanimated';
 import {firebaseCollections} from '../../constants/firebaseCollections';
+import {useMMKVString} from 'react-native-mmkv';
 // Validation Schema using Yup
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -45,6 +46,8 @@ const RegisterScreen = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useCustomNavigation();
   const [secureText, setSecureText] = useState(false);
+  const [userId, setUserid] = useMMKVString('userId');
+  const [userName, setUsername] = useMMKVString('userName');
 
   // Register User function
   const handleRegister = async (values: any) => {
@@ -67,7 +70,8 @@ const RegisterScreen = () => {
           email: values.email,
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
-
+      setUserid(user.uid);
+      setUsername(values.name);
       console.log('User registered successfully:', user);
       ToastAndroid.show('User Registered successfully', 2000);
     } catch (error: any) {
@@ -141,6 +145,8 @@ const RegisterScreen = () => {
                           textInputProps={{
                             placeholder: 'Email',
                             style: styles.input,
+                            keyboardType: 'email-address',
+                            autoCapitalize: 'none',
                           }}
                           error={touched.email && !!errors.email}
                           bottomText={touched.email && errors.email}
@@ -253,14 +259,16 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    flex: 1,
+    opacity: 0.5,
+
     backgroundColor: colors.white,
     borderColor: 'transparent',
     borderWidth: 0,
+    color: colors.black,
   },
   inputPassword: {
     width: '100%',
-    flex: 1,
+
     backgroundColor: colors.white,
     opacity: 0.5,
     borderColor: 'transparent',
