@@ -8,7 +8,7 @@ import {
   StyleProp,
   ImageStyle,
 } from 'react-native';
-import {Card} from 'react-native-paper';
+import {Card, Icon} from 'react-native-paper';
 import {Text} from './Text';
 import {colors} from '../../theme/colors';
 
@@ -23,6 +23,11 @@ interface MountainCardProps {
   descriptionStyle?: TextStyle;
   onPress: any;
   showImage?: boolean;
+  isPath?: boolean;
+  shortestPaths?: [];
+  hasAnimals?: boolean;
+  hasWater?: boolean;
+  pathId?: string;
 }
 
 const MountainCard: React.FC<MountainCardProps> = ({
@@ -36,10 +41,83 @@ const MountainCard: React.FC<MountainCardProps> = ({
   descriptionStyle,
   onPress,
   showImage = true,
+  isPath = false,
+  shortestPaths = [],
+  hasAnimals,
+  hasWater,
+  pathId,
 }) => {
   return (
     <View style={[styles.cardContainer, containerStyle]}>
       <Card onPress={onPress}>
+        {isPath && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginLeft: 10,
+              marginBottom: 10,
+              marginTop: 10,
+              marginRight: 10,
+            }}>
+            {shortestPaths.includes(pathId) && (
+              <View
+                style={{
+                  backgroundColor: 'green',
+                  flexDirection: 'row',
+                  padding: 3,
+                  borderRadius: 10,
+                  paddingRight: 10,
+                }}>
+                <Icon size={15} source={'map'} />
+                <Text
+                  style={{
+                    fontSize: 10,
+                  }}>
+                  Shoretest Path
+                </Text>
+              </View>
+            )}
+            {hasWater && (
+              <View
+                style={{
+                  backgroundColor: 'blue',
+                  flexDirection: 'row',
+                  padding: 3,
+                  borderRadius: 10,
+                  paddingRight: 10,
+                }}>
+                <Icon size={15} source={'water'} />
+                <Text
+                  style={{
+                    fontSize: 10,
+                  }}>
+                  Has Water
+                </Text>
+              </View>
+            )}
+            {hasAnimals && (
+              <View
+                style={{
+                  backgroundColor: 'red',
+                  flexDirection: 'row',
+                  padding: 3,
+                  borderRadius: 10,
+                  paddingRight: 10,
+                }}>
+                <Icon size={15} source={'skull-crossbones'} />
+                <Text
+                  style={{
+                    fontSize: 10,
+                  }}>
+                  Has Animals
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
         <Card.Content style={[styles.cardContent, textContainerStyle]}>
           {showImage && (
             <View>
