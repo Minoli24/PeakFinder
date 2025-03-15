@@ -3,7 +3,6 @@ import React, {useEffect} from 'react';
 import {Avatar, Icon} from 'react-native-paper';
 import {Text} from '../Text';
 import {colors} from '../../../theme/colors';
-import {useMMKVString} from 'react-native-mmkv';
 import useNavigationStateStore from '../../../store/navigationStore';
 
 export default function HomeHeader() {
