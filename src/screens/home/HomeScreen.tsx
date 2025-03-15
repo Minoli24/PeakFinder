@@ -23,7 +23,7 @@ import ContainedButton from '../../components/customComponents/ContainedButton';
 //   mountainName:"Knuckles",
 //   mainImage:"https://i.postimg.cc/8kWgngyb/pexels-alexazabache-3723035.jpg",
 //   mountainDescription:"Trekking the Knuckles Mountain Range is an unforgettable experience, offering one of the best backpacking escapes.",
-//   carouselImages:["https://i.postimg.cc/WpG5BZvQ/d94c312ceb8ca8f02fe59ff6e14a984a.jpg","https://i.postimg.cc/BvRh0ctG/R-1.jpg"]
+//   carouselImages:["https://i.postimg.cc/WpG5BZvQ/d94c312ceb8ca8f02fe59ff6e14a984a.jpg","https://i.postimg.cc/BvRh0ctG/R-1.jpg"],
 //   initialLongLat:{
 //     latitude: 7.402632,
 //     longitude: 80.808842,
