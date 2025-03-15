@@ -9,6 +9,8 @@ import './reanimatedConfig';
 import {useMMKVString} from 'react-native-mmkv';
 
 import useNavigationStateStore from './src/store/navigationStore';
+import {PaperProvider} from 'react-native-paper';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 function App(): React.JSX.Element {
   const [userId, setUserid] = useMMKVString('userId');
   const [userName, setName] = useMMKVString('userName');
@@ -27,11 +29,13 @@ function App(): React.JSX.Element {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <NavigationContainer ref={navRef}>
-          <RootNavigation />
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <BottomSheetModalProvider>
+        <SafeAreaProvider>
+          <NavigationContainer ref={navRef}>
+            <RootNavigation />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }
