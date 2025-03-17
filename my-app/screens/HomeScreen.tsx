@@ -14,6 +14,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons"; // Import icons
 import { RootStackParamList } from "../App"; // Import navigation types
 import * as Location from 'expo-location';
+import { ScrollView } from "react-native";
+
 // Define TypeScript type for navigation props
 type HomeScreenProps = StackScreenProps<RootStackParamList, "Home">;
 
@@ -29,9 +31,10 @@ export default function HomeScreen() {
 
   const API_KEY = "5b1d50dc4c9d25a46417835c506a0644"; // OpenWeather API Key
   //const FLASK_API_URL = "http://192.168.1.18:5000/predict/classifier"; // Flask API
-  const FLASK_API_URL = "http://192.168.1.19:5000/predict/classifier";
+  const FLASK_API_URL = "https://sehara.el.r.appspot.com/predict/classifier";
 
   useEffect(() => {
+    
     getLocationPermission();
   }, []);
 
@@ -259,66 +262,102 @@ console.log("Extracted Weather:", weatherMain);
   };
 
   return (
-    <View style={styles.container}>
+    // <View style={styles.container}>
      
-      <ImageBackground source={require("../assets/trail_background.jpg")} style={styles.backgroundImage}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#ffffff" />
-        ) : (
-          <View style={styles.card}>
-            <Text style={styles.city}><Ionicons name="location-sharp" size={22} color="#ff9f1c" /> {city || "Fetching location..."}
-           </Text>
-            {weatherData.map((forecast, index) => (
-              <View key={index} style={styles.trailBox}>
-                <Text style={styles.time}>{forecast.time}</Text>
-                <Text style={styles.weather}><Ionicons name="cloud-outline" size={20} color="#666" /> {forecast.weather}</Text>
-                <Text style={styles.temp}>{forecast.temp}°C</Text>
-                <Text style={styles.details}> <Ionicons name="water-outline" size={18} color="#666" /> {forecast.humidity}%</Text>
-                <Text style={styles.trailText}>Trail Condition: {forecast.condition}</Text>
-                <Text style={styles.safetyMessage}>{forecast.safetyMessage}</Text>
-              </View>
-            ))}
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("MountainSelection")}>
-              <Text style={styles.buttonText}>Go to Mountain Selection</Text>
-            </TouchableOpacity>
+    //   <ImageBackground source={require("../assets/trail_background.jpg")} style={styles.backgroundImage}>
+    //     {loading ? (
+    //       <ActivityIndicator size="large" color="#ffffff" />
+    //     ) : (
+    //       <View style={styles.card}>
+    //         <Text style={styles.city}><Ionicons name="location-sharp" size={22} color="#ff9f1c" /> {city || "Fetching location..."}
+    //        </Text>
+    //         {weatherData.map((forecast, index) => (
+    //           <View key={index} style={styles.trailBox}>
+    //             <Text style={styles.time}>{forecast.time}</Text>
+    //             <Text style={styles.weather}><Ionicons name="cloud-outline" size={20} color="#666" /> {forecast.weather}</Text>
+    //             <Text style={styles.temp}>{forecast.temp}°C</Text>
+    //             <Text style={styles.details}> <Ionicons name="water-outline" size={18} color="#666" /> {forecast.humidity}%</Text>
+    //             <Text style={styles.trailText}>Trail Condition: {forecast.condition}</Text>
+    //             <Text style={styles.safetyMessage}>{forecast.safetyMessage}</Text>
+    //           </View>
+    //         ))}
+    //         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("MountainSelection")}>
+    //           <Text style={styles.buttonText}>Go to Mountain Selection</Text>
+    //         </TouchableOpacity>
+    //       </View>
+    //     )}
+    //   </ImageBackground>
+    // </View>
+    
+
+
+  <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ImageBackground source={require("../assets/trail_background.jpg")} style={styles.backgroundImage}>
+      <View style={styles.overlay} />
+      <View style={styles.card}>
+        <Text style={styles.city}><Ionicons name="location-sharp" size={22} color="#ff9f1c" /> {city || "Fetching location..."}</Text>
+        {weatherData.map((forecast, index) => (
+          <View key={index} style={styles.trailBox}>
+            <Text style={styles.time}>{forecast.time}</Text>
+            <Text style={styles.weather}><Ionicons name="cloud-outline" size={20} color="#666" /> {forecast.weather}</Text>
+            <Text style={styles.temp}>{forecast.temp}°C</Text>
+            <Text style={styles.details}> <Ionicons name="water-outline" size={18} color="#666" /> {forecast.humidity}%</Text>
+            <Text style={styles.trailText}>Trail Condition: {forecast.condition}</Text>
+            <Text style={styles.safetyMessage}>{forecast.safetyMessage}</Text>
           </View>
-        )}
-      </ImageBackground>
-    </View>
-  );
+        ))}
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("MountainSelection")}>
+          <Text style={styles.buttonText}>Go to Mountain Selection</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
+  </ScrollView>
+);
+
+    
+  
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1,  // ✅ Fixes height issue
     backgroundColor: "#f2f2f2",
-    width: "100%",
-    height: "10%",
+    alignItems: "center", 
+  },
+  scrollContainer: {
+    flexGrow: 1, // ✅ Allows scrolling if content overflows
+    justifyContent: "center",
+    alignItems: "center",
+   // paddingVertical: 20, 
   },
   backgroundImage: {
     flex: 1,
+    width: "100%",
     resizeMode: "cover",
-    justifyContent: "center",
-    alignItems: "center",
   },
+
   card: {
-    //backgroundColor: "white",
+    //backgroundColor: "rgba(255, 255, 255, 0.9)", // ✅ Transparent white for a clean look
     width: "90%",
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    marginBottom: 20, // ✅ Prevent overlap
+   // shadowColor: "#000",
+    //shadowOffset: { width: 0, height: 4 },
+   // shadowOpacity: 0.2,
+   // shadowRadius: 5,
+    //elevation: 2,
     alignItems: "center",
+    justifyContent: "center",
   },
   city: {
     fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 10,
+    color: "#222",
   },
   time: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "bold",
     color: "#333",
   },
@@ -327,19 +366,20 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   temp: {
-    fontSize: 32,
+    fontSize: 28, // ✅ Adjusted for better alignment
     fontWeight: "bold",
     color: "#ff9f1c",
   },
+
   details: {
     fontSize: 16,
     color: "#444",
     fontWeight: "bold",
   },
   trailBox: {
-    marginTop: 10,
+    marginTop: 15,
     padding: 12,
-    backgroundColor: "#eee",
+    backgroundColor: "#fff", // ✅ More contrast for readability
     borderRadius: 12,
     alignItems: "center",
     width: "90%",
@@ -347,7 +387,7 @@ const styles = StyleSheet.create({
     elevation: 2, // Soft shadow effect
   },
   trailText: {
-    fontSize: 20,
+    fontSize: 20,  // ✅ Increase size for readability
     fontWeight: "bold",
     color: "#222",
   },
@@ -371,13 +411,18 @@ const styles = StyleSheet.create({
   },
 
   safetyMessage: {
-    fontSize: 12,
-    color: "#d9534f", // Red color for warnings
+    fontSize: 14,
+    color: "#d9534f", // ✅ Red for warnings
     fontWeight: "bold",
     marginTop: 5,
     textAlign: "center",
   },
   
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)", // ✅ Dim the background for better readability
+  },
+
 });
 
 

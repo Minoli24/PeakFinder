@@ -1,5 +1,3 @@
-
-
 import {
   View,
   Text,
@@ -11,12 +9,16 @@ import {
   Modal,
   TextInput,
   FlatList,
+  ImageBackground,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { RootStackParamList } from "../App";
+import { Ionicons, Feather, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons"; 
+import { LinearGradient } from 'expo-linear-gradient'; // For gradient background
+
  // Adjust if necessary
 
 // Define available mountains
@@ -80,11 +82,24 @@ const [isModalVisible, setModalVisible] = useState(false);
 const [isDayModalVisible, setDayModalVisible] = useState(false);
 const [selectedForecastDetails, setSelectedForecastDetails] = useState<{ day: string; temp: number; humidity: number; weather: string; trailPrediction: string } | null>(null);
 
+const mountainImages: { [key: string]: any } = {
+  "Adam's Peak": require("../assets/images/adamspeak.jpg"),
+  "Ella Rock": require("../assets/images/ella_rock.jpg"),
+  "Bible Rock": require("../assets/images/Bible_Rock.jpg"),
+  "Hanthana": require("../assets/images/hanthana.jpg"),
+  "Lakegala": require("../assets/images/lakegala.jpg"),
+  "Narangala Mountain": require("../assets/images/narangala.jpg"),
+  "Sigiriya": require("../assets/images/sigiriya.jpg"),
+  "Yahangala": require("../assets/images/yahangala.jpg"),
+ // "Sigiriya": require("../assets/sigiriya.jpg"),
+};
+
+
 ////////////////////////////////////////////////////////////////////
 
   // API keys & URLs
   const WEATHER_API_KEY = "5b1d50dc4c9d25a46417835c506a0644";
-  const FLASK_API_URL = "http://192.168.1.19:5000/predict/classifier";
+  const FLASK_API_URL = "https://sehara.el.r.appspot.com/predict/classifier";
 
     // Function to handle search
     const handleSearch = (text: string) => {
@@ -238,6 +253,19 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
     3: "Clear",
   };
   
+  const weatherIcons: { [key: number]: any } = {
+    0: "cloud-outline",   // Cloudy ☁️
+    1: "wind",            // Windy 🌬
+    2: "rainy-outline",   // Rainy 🌧
+    3: "sunny-outline",   // Sunny ☀️
+  };
+  
+  const trailIcons: { [key: string]: any } = {
+    "Muddy": "weather-rainy",   // Muddy 🌧 (Slippery)
+    "Wet": "waves",             // Wet 💦 (Water on the trail)
+    "Dry": "weather-sunny",      // Dry ☀️ (Clear trail)
+  };
+  
 
   useEffect(() => {
     fetchWeatherEncoding();
@@ -252,26 +280,34 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
 
 //   
 return (
+  <ScrollView contentContainerStyle={styles.scrollView}>
   <View style={styles.container}>
     <Text style={styles.header}>Select a Mountain</Text>
 
+   
     {/* Searchable Text Input */}
     <TouchableOpacity
       style={styles.searchInputContainer}
       onPress={() => setModalVisible(true)}
     >
       <Text style={styles.searchInputText}>{selectedMountain.name}</Text>
+      <Ionicons name="chevron-down" size={22} color="#000" />
     </TouchableOpacity>
-
+    
     {/* Modal for Searchable List */}
-    <Modal visible={isModalVisible} animationType="slide" transparent>
+    <Modal visible={isModalVisible} animationType="fade" transparent>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <TextInput
             style={styles.searchInput}
             placeholder="Search Mountain..."
+            placeholderTextColor="#888"
             value={searchText}
-            onChangeText={handleSearch}
+    
+            onChangeText={(text) => {
+              setSearchText(text);
+              setFilteredMountains(mountains.filter(m => m.name.toLowerCase().includes(text.toLowerCase())));
+            }}
           />
 
           {/* List of Mountains */}
@@ -306,46 +342,68 @@ return (
         </View>
       </View>
     </Modal>
+    <View style={styles.imageContainer}>
+    <ImageBackground
+        source={mountainImages[selectedMountain.name]}
+        style={styles.imageBackground}
+      >
+        <View style={styles.overlay} />
+        <View style={styles.headerContent}>
+          
+          <Text style={styles.mountainName}>{selectedMountain.name}</Text>
+          <View style={styles.row}>
+          <MaterialIcons name="landscape" size={22} color="#aaa" />
+          <Text style={styles.mountainElevation}>{selectedMountain.elevation}m</Text>
+        </View>
+        <View style={styles.row}>
+          <MaterialIcons name="landscape" size={22} color="#aaa" />
+          <Text style={styles.mountainDifficulty}>{selectedMountain.difficulty}</Text>
+          </View>
+        </View>
+      </ImageBackground>
+      </View>
+ 
+    <View style={styles.weatherCard}>
+  <LinearGradient colors={["#1E2A47", "#000"]} style={styles.gradientBackground}>
+    <View style={styles.weatherHeader}>
+      <MaterialCommunityIcons name="weather-partly-rainy" size={28} color="#fff" />
+      <Text style={styles.weatherTitle}>Weather</Text>
+    </View>
 
-   {/* Mountain Details */}
-   <Text style={styles.label}>Elevation: {selectedMountain.elevation}m</Text>
-    <Text style={styles.label}>Difficulty: {selectedMountain.difficulty} (Encoded: {difficultyEncoded})</Text>
-    {/* <Text style={styles.label}>Weather: {weatherCondition} (Encoded: {weatherEncoded})</Text> */}
-    {/* <Text style={styles.label}>
-  Weather: {weatherCondition ? weatherCondition : "Loading..."} (Encoded: {weatherEncoded ?? "Loading..."})
-</Text> */}
-<Text style={styles.label}>
-  Weather: {weatherEncoded !== null ? weatherMapping[weatherEncoded] : "Loading..."} (Encoded: {weatherEncoded ?? "Loading..."})
-</Text>
+    {/* Temperature & Condition */}
+    <View style={styles.weatherMain}>
+      <Text style={styles.tempText}>{temperature}°</Text>
+      <MaterialCommunityIcons name={weatherEncoded !== null ? weatherIcons[weatherEncoded] : "weather-cloudy"} size={40} color="#fff" />
+    </View>
+    <Text style={styles.weatherCondition}>{weatherEncoded !== null ? weatherMapping[weatherEncoded] : "Unknown"}</Text>
 
+    {/* Extra Weather Info */}
+    <View style={styles.weatherInfo}>
+      {/* <View style={styles.infoItem}>
+        <Feather name="sunrise" size={22} color="#fff" />
+        <Text style={styles.infoText}>06:14</Text>
+      </View> */}
+      {/* <View style={styles.infoItem}>
+        <Feather name="sunset" size={22} color="#fff" />
+        <Text style={styles.infoText}>18:19</Text>
+      </View> */}
+      <View style={styles.infoItem}>
+        <Ionicons name="water-outline" size={22} color="#fff" />
+        <Text style={styles.infoText}>{humidity}%</Text>
+      </View>
+    </View>
 
-    <Text style={styles.label}>Temperature: {temperature} °C</Text>
-    <Text style={styles.label}>Humidity: {humidity}%</Text>
-
+    {/* Trail Condition */}
+    <Text style={styles.trailHeading}>Trail Condition</Text>
     {trailConditions.map((forecast, index) => (
-      <Text key={index} style={styles.label}>
-        Trail Condition {forecast.time}: {forecast.condition}
-      </Text>
+      <View key={index} style={styles.trailRow}>
+        <MaterialCommunityIcons name={trailIcons[forecast.condition] || "terrain"} size={22} color="#fff" />
+        <Text style={styles.trailText}>{forecast.time}: {forecast.condition}</Text>
+      </View>
     ))}
+  </LinearGradient>
+</View>
 
-    {/* Navigation Button */}
-    {/* <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("PredictionResult", {
-      mountain: {
-        name: selectedMountain.name,
-        elevation:elevation,
-        difficulty: difficultyEncoded,
-        weatherEncoded,
-        temperature,
-        humidity,
-        trailConditions,
-      },
-      restStops: Number(restStops),
-      travelMode: selectedTravelMode,
-    })}
-    
-    >
-      <Text style={styles.buttonText}>Show Distance and Time</Text>
-    </TouchableOpacity> */}
     
     <TouchableOpacity 
   style={styles.button} 
@@ -369,77 +427,120 @@ return (
   <Text style={styles.buttonText}>Show Distance and Time</Text>
 </TouchableOpacity>
 
-    {/* Weekly Forecast */}
-    <Text style={styles.subHeader}>Weekly Forecast</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
-      {weeklyForecast.map((dayData, index) => (
-        <TouchableOpacity
+{/* Weekly Forecast */}
+<Text style={styles.subHeader}>Weekly Forecast</Text>
+
+<ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
+  {weeklyForecast.map((dayData, index) => {
+    const currentDate = new Date(); // Get today's date
+    const forecastDate = new Date();
+    forecastDate.setDate(currentDate.getDate() + index); // Set correct forecast date
+
+    return (
+      <TouchableOpacity
         key={index}
         style={[styles.dateButton, selectedDay === index ? styles.selectedDateButton : {}]}
         onPress={() => {
           setSelectedDay(index);
-          setSelectedForecastDetails(weeklyForecast[index]); // Store selected day's details
-          setDayModalVisible(true); // Show modal
+          setSelectedForecastDetails(weeklyForecast[index]);
+          setDayModalVisible(true);
         }}
       >
-        <Text style={styles.dateText}>{dayData.day}</Text>
+        <Text style={styles.dateText}>
+          {dayData.day} {forecastDate.getDate()} {/* Example: "Sun 16" */}
+        </Text>
       </TouchableOpacity>
-      
-      ))}
-    </ScrollView>
+    );
+  })}
+</ScrollView>
 
-    {weeklyForecast.length > 0 && (
- <Modal visible={isDayModalVisible} animationType="fade" transparent>
- <View style={styles.modalContainer}>
-   <View style={styles.modalContent}>
-     {selectedForecastDetails && (
-       <>
-         <Text style={styles.modalTitle}>{selectedForecastDetails.day} Forecast</Text>
-         {/* <Text style={styles.label}>Weather: {selectedForecastDetails.weather}</Text> */}
-         <Text style={styles.label}>
-  Weather: {weatherMapping[weatherEncoding[selectedForecastDetails.weather]] ?? selectedForecastDetails.weather}
-</Text>
+{weeklyForecast.length > 0 && (
+  <Modal visible={isDayModalVisible} animationType="fade" transparent>
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        {selectedForecastDetails && (
+          <>
+            <Text style={styles.modalTitle}>{selectedForecastDetails.day} Forecast</Text>
 
-         <Text style={styles.label}>Temperature: {selectedForecastDetails.temp} °C</Text>
-         <Text style={styles.label}>Humidity: {selectedForecastDetails.humidity}%</Text>
-         <Text style={styles.label}>Trail Condition: {selectedForecastDetails.trailPrediction}</Text>
+            {/* Weather */}
+            <View style={styles.modalRow}>
+              <MaterialCommunityIcons name={weatherIcons[weatherEncoding[selectedForecastDetails.weather]] || "weather-cloudy"} size={24} color="#ff9800" />
+              <Text style={styles.modalLabel}>
+                Weather: {weatherMapping[weatherEncoding[selectedForecastDetails.weather]] ?? selectedForecastDetails.weather}
+              </Text>
+            </View>
 
-         {/* Close Modal Button */}
-         <TouchableOpacity onPress={() => setDayModalVisible(false)} style={styles.forecastCloseButton}>
-            <Text style={styles.forecastCloseButtonText}>Close</Text>
-          </TouchableOpacity>
-       </>
-     )}
-   </View>
- </View>
-</Modal>
+            {/* Temperature */}
+            <View style={styles.modalRow}>
+              <MaterialCommunityIcons name="thermometer" size={24} color="#d32f2f" />
+              <Text style={styles.modalLabel}>Temperature: {selectedForecastDetails.temp}°C</Text>
+            </View>
 
+            {/* Humidity */}
+            <View style={styles.modalRow}>
+              <Ionicons name="water-outline" size={24} color="#2196F3" />
+              <Text style={styles.modalLabel}>Humidity: {selectedForecastDetails.humidity}%</Text>
+            </View>
+
+            {/* Trail Condition */}
+            <View style={styles.modalRow}>
+              <MaterialCommunityIcons name={trailIcons[selectedForecastDetails.trailPrediction] || "terrain"} size={24} color="#4CAF50" />
+              <Text style={styles.modalLabel}>Trail Condition: {selectedForecastDetails.trailPrediction}</Text>
+            </View>
+
+            {/* Close Button */}
+            <TouchableOpacity onPress={() => setDayModalVisible(false)} style={styles.forecastCloseButton}>
+              <Text style={styles.forecastCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </View>
+  </Modal>
 )}
 
   </View>
+  </ScrollView>
 );
 };
 
 
 // Styles
 const styles = StyleSheet.create({
+  listItemText: {
+    fontSize: 16,
+    color: "#000",  // Ensure black text for visibility
+    textAlign: "left",
+    paddingVertical: 8,
+  },
+  
   // container: {
   //   flex: 1,
   //   justifyContent: "center",
   //   alignItems: "center",
   //   backgroundColor: "#f2f2f2",
   // },
+  scrollView: {
+    //alignItems: "center",
+    paddingVertical: 30,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f2f2f2",
-    paddingTop: 50,
+    paddingTop: 20,
+  },
+  scrollContainer: {
+   
+    flexGrow: 1,
+    paddingBottom: 20,
+    alignItems: "center",
   },
   header: { 
     fontSize: 20, 
     fontWeight: "bold", 
-    marginBottom: 10 
+    marginBottom: 15 
   },
   pickerContainer: {
     width: "90%", 
@@ -481,22 +582,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  subHeader: { fontSize: 18, fontWeight: "bold", marginTop: 20 },
-  dateSelector: { marginTop: 10, flexDirection: "row" },
-  selectedDateButton: {
-    backgroundColor: "#34A853",
-  },
-  dateButton: {
-    padding: 10,
-    margin: 5,
-    borderRadius: 5,
-    backgroundColor: "#ccc",
-    height: 40,
-  },
-  dateText: {
-    fontSize: 16,
-    color: "#fff",
-  },
+ 
+ 
+  
 
   // Search Input Button (Replaces Dropdown)
   searchInputContainer: {
@@ -517,13 +605,6 @@ const styles = StyleSheet.create({
 
   // Modal Styles
 
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "80%",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
 
   searchInput: {
     width: "100%",
@@ -532,18 +613,17 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     marginBottom: 10,
+    backgroundColor: "#333",
   },
 
   listItem: {
     padding: 15,
     width: "100%",
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "#555",
   },
 
-  listItemText: {
-    fontSize: 16,
-  },
+  
 
   closeButton: {
     marginTop: 10,
@@ -552,18 +632,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent background
-  },
   
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
+ 
   
   closeButtonText: {
     color: "#fff",
@@ -571,14 +641,251 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
    // ✅ Close Button for Weekly Forecast Modal
-   forecastCloseButton: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: "#FF5733", // Different color for better visibility
-    borderRadius: 5,
-    width: "50%",
+  
+  
+
+  imageBackground: {
+    width: "100%", // Ensure full width within parent
+    height: 220,
+    resizeMode: "cover", // Make sure the image fully covers the container
+    borderRadius: 10, 
+    overflow: "hidden", // Prevent overflow issues
+    marginBottom: 10,
+    justifyContent: "flex-end",
+  },
+  imageContainer: {
+    width: "90%", // Keep within screen bounds
+    alignSelf: "center", // Center it properly
+   // backgroundColor: "#fff", // Ensure it blends well
+    borderRadius: 10,
+    overflow: "hidden", // Prevent unwanted expansion
+  },
+  
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  headerContent: {
+    paddingHorizontal: 20,
+  },
+  mountainInfo: {
+    padding: 15,
+  },
+  mountainName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  mountainElevation: {
+    fontSize: 18,
+    color: "#fff",
+  },
+  mountainDifficulty: {
+    fontSize: 18,
+    color: "#fff",
+  },
+  mountainDetails: {
+    fontSize: 14,
+    color: "#fff",
+    marginTop: 5,
+  },
+  detailsContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#aaa",
+    marginLeft: 10,
+  },
+  bottomContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 20,
+  },
+  downloadButton: {
+    backgroundColor: "#34A853",
+    padding: 15,
+    borderRadius: 10,
+  },
+  mapButton: {
+    backgroundColor: "#333",
+    padding: 15,
+    borderRadius: 10,
+  },
+ 
+  weatherContainer: {
+    backgroundColor: "#d3d3d3",  // Dark theme background
+    padding: 15,
+    borderRadius: 15,
+    width: "90%",
+    alignSelf: "center",
+    marginVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+
+  weatherCard: {
+    width: "90%",
+    alignSelf: "center",
+    borderRadius: 15,
+    overflow: "hidden",
+    marginTop: 20,
+  },
+
+  gradientBackground: {
+    padding: 20,
+    borderRadius: 15,
+  },
+
+  weatherHeader: {
+    flexDirection: "row",
     alignItems: "center",
   },
+
+  weatherTitle: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+
+  weatherMain: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+
+  tempText: {
+    fontSize: 40,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+
+  weatherCondition: {
+    fontSize: 18,
+    color: "#bbb",
+    marginTop: 5,
+  },
+
+  weatherInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 15,
+  },
+
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  infoText: {
+    color: "#fff",
+    fontSize: 14,
+    marginLeft: 5,
+  },
+
+  trailHeading: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "bold",
+    marginTop: 15,
+  },
+
+  trailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 5,
+  },
+
+  trailText: {
+    fontSize: 14,
+    color: "#ccc",
+    marginLeft: 10,
+  },
+  subHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    textAlign: "center",
+    color: "#333",
+  },
+
+  dateSelector: {
+    flexDirection: "row",
+    marginTop: 10,
+    paddingHorizontal: 10,
+  },
+
+  dateButton: {
+    padding: 12,
+    marginHorizontal: 5,
+    borderRadius: 8,
+    backgroundColor: "#ddd",
+  },
+
+  selectedDateButton: {
+    backgroundColor: "#4CAF50",
+  },
+
+  dateText: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "bold",
+  },
+
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent background
+  },
+
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "80%",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#333",
+  },
+
+  modalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+
+  modalLabel: {
+    fontSize: 18,
+    marginLeft: 10,
+    color: "#555",
+  },
+
+  forecastCloseButton: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: "#ff5722",
+    borderRadius: 8,
+    width: "60%",
+    alignItems: "center",
+  },
+
   forecastCloseButtonText: {
     color: "#fff",
     fontSize: 16,
