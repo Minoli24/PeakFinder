@@ -4,8 +4,11 @@
     "slug": "peakfinder",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android", "web"],
-    "sdkVersion": "52.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "ios": {
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to fetch weather data.",

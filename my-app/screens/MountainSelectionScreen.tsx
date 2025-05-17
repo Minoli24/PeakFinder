@@ -1,27 +1,20 @@
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  Modal,
-  TextInput,
-  FlatList,
-  ImageBackground,
+  View, Text, StyleSheet, TouchableOpacity, Alert,
+  ScrollView, Modal, TextInput, FlatList,
+  ImageBackground
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../App";
-import { Ionicons, Feather, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons"; 
-import { LinearGradient } from 'expo-linear-gradient'; // For gradient background
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import MapView, { Marker, Circle ,Polyline} from 'react-native-maps';
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // Add at top
 
- // Adjust if necessary
 
-// Define available mountains
+// import MapView, { Marker, Polyline } from 'react-native-maps';
+
+import axios from "axios";
+
 const mountains = [
   { name: "Adam's Peak", latitude: 6.8094, longitude: 80.4999, elevation: 2243, difficulty: "Hard", difficultyEncoded: 0 },
   { name: "Bible Rock", latitude: 7.1000, longitude: 80.3333, elevation: 798, difficulty: "Hard", difficultyEncoded: 0 },
@@ -33,16 +26,61 @@ const mountains = [
   { name: "Yahangala", latitude: 7.4000, longitude: 81.0000, elevation: 1220, difficulty: "Hard", difficultyEncoded: 0 },
 ];
 
-// Weather encoding map
-const weatherEncoding: { [key: string]: number } = {
-  Clear: 3,
-  Rain: 2,
-  "Moderate Rain": 0,
-  Cloudy: 0,
-  Windy: 1,
+const trailPaths: { [key: string]: { latitude: number; longitude: number }[] } = {
+  "Adam's Peak": [
+    { latitude: 6.8080, longitude: 80.4980 },
+    { latitude: 6.8092, longitude: 80.4995 },
+    { latitude: 6.8105, longitude: 80.5010 },
+  ],
+  "Bible Rock": [
+    { latitude: 7.0980, longitude: 80.3310 },
+    { latitude: 7.0995, longitude: 80.3325 },
+    { latitude: 7.1008, longitude: 80.3340 },
+  ],
+  "Ella Rock": [
+    { latitude: 6.8650, longitude: 81.0370 },
+    { latitude: 6.8665, longitude: 81.0385 },
+    { latitude: 6.8680, longitude: 81.0400 },
+  ],
+  "Hanthana": [
+    { latitude: 7.2480, longitude: 80.6320 },
+    { latitude: 7.2495, longitude: 80.6335 },
+    { latitude: 7.2510, longitude: 80.6350 },
+  ],
+  "Lakegala": [
+    { latitude: 7.5815, longitude: 80.9480 },
+    { latitude: 7.5828, longitude: 80.9495 },
+    { latitude: 7.5840, longitude: 80.9510 },
+  ],
+  "Narangala Mountain": [
+    { latitude: 7.2150, longitude: 80.8815 },
+    { latitude: 7.2165, longitude: 80.8830 },
+    { latitude: 7.2180, longitude: 80.8845 },
+  ],
+  "Sigiriya": [
+    { latitude: 7.9550, longitude: 80.7580 },
+    { latitude: 7.9560, longitude: 80.7595 },
+    { latitude: 7.9575, longitude: 80.7610 },
+  ],
+  "Yahangala": [
+    { latitude: 7.3985, longitude: 80.9980 },
+    { latitude: 7.3998, longitude: 80.9995 },
+    { latitude: 7.4010, longitude: 81.0010 },
+  ],
 };
 
-// Temperature encoding
+
+const weatherEncoding: { [key: string]: number } = {
+  Clear: 3,
+  Rainy: 2,
+  "Light Rain": 0,
+  "Moderate Rain": 2,
+"Heavy Rain": 2,
+  Cloudy: 0,
+  Windy: 4,
+  Foggy:1
+};
+
 const encodeTemperature = (temp: number): number => {
   if (temp >= 1 && temp < 10) return 1;
   if (temp >= 10 && temp < 20) return 2;
@@ -50,77 +88,51 @@ const encodeTemperature = (temp: number): number => {
   return 0;
 };
 
-// Humidity encoding
 const encodeHumidity = (humidity: number): number => {
   if (humidity >= 75) return 0;
   if (humidity >= 50) return 1;
   return 2;
 };
 
+const FLASK_API_URL = "http://192.168.1.16:5000/predict/classifier";
+
 const MountainSelectionScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList, "MountainSelection">>();
+
   const [selectedMountain, setSelectedMountain] = useState(mountains[0]);
-
-  const [restStops, setRestStops] = useState<string>("0");
-  const [selectedTravelMode, setSelectedTravelMode] = useState("Walking");
-  //const [elevation, setElevation] = useState(mountains[0].elevation);
-  const elevation = selectedMountain.elevation;
-
-  const [difficulty, setDifficulty] = useState(mountains[0].difficulty);
-  const [difficultyEncoded, setDifficultyEncoded] = useState(mountains[0].difficultyEncoded);
-  const [weatherEncoded, setWeatherEncoded] = useState<number | null>(null);
-  const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
   const [temperature, setTemperature] = useState<number | null>(null);
   const [humidity, setHumidity] = useState<number | null>(null);
+  const [weatherEncoded, setWeatherEncoded] = useState<number | null>(null);
+  const [weatherCondition, setWeatherCondition] = useState<string>("");
   const [trailConditions, setTrailConditions] = useState<any[]>([]);
   const [weeklyForecast, setWeeklyForecast] = useState<any[]>([]);
- const [selectedDay, setSelectedDay] = useState(0); // 0 = Today
-////////////////////////////////////////////////////////////////////////
-const [searchText, setSearchText] = useState("");
-const [filteredMountains, setFilteredMountains] = useState(mountains);
-const [isModalVisible, setModalVisible] = useState(false);
-const [isDayModalVisible, setDayModalVisible] = useState(false);
-const [selectedForecastDetails, setSelectedForecastDetails] = useState<{ day: string; temp: number; humidity: number; weather: string; trailPrediction: string } | null>(null);
+  const [forecastNow, setForecastNow] = useState<any | null>(null);
+  const [forecast3h, setForecast3h] = useState<any | null>(null);
+  const [forecast6h, setForecast6h] = useState<any | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [filteredMountains, setFilteredMountains] = useState(mountains);
 
-const mountainImages: { [key: string]: any } = {
-  "Adam's Peak": require("../assets/images/adamspeak.jpg"),
-  "Ella Rock": require("../assets/images/ella_rock.jpg"),
-  "Bible Rock": require("../assets/images/Bible_Rock.jpg"),
-  "Hanthana": require("../assets/images/hanthana.jpg"),
-  "Lakegala": require("../assets/images/lakegala.jpg"),
-  "Narangala Mountain": require("../assets/images/narangala.jpg"),
-  "Sigiriya": require("../assets/images/sigiriya.jpg"),
-  "Yahangala": require("../assets/images/yahangala.jpg"),
- // "Sigiriya": require("../assets/sigiriya.jpg"),
-};
-
-
-////////////////////////////////////////////////////////////////////
-
-  // API keys & URLs
   const WEATHER_API_KEY = "5b1d50dc4c9d25a46417835c506a0644";
-  const FLASK_API_URL = "https://sehara.el.r.appspot.com/predict/classifier";
 
-    // Function to handle search
-    const handleSearch = (text: string) => {
-      setSearchText(text);
-      const filtered = mountains.filter((mountain) =>
-        mountain.name.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredMountains(filtered);
-    };
+  const mountainImages: { [key: string]: any } = {
+    "Adam's Peak": require("../assets/images/adamspeak.jpg"),
+    "Ella Rock": require("../assets/images/ella_rock.jpg"),
+    "Bible Rock": require("../assets/images/Bible_Rock.jpg"),
+    "Hanthana": require("../assets/images/hanthana.jpg"),
+    "Lakegala": require("../assets/images/lakegala.jpg"),
+    "Narangala Mountain": require("../assets/images/narangala.jpg"),
+    "Sigiriya": require("../assets/images/sigiriya.jpg"),
+    "Yahangala": require("../assets/images/yahangala.jpg"),
+   // "Sigiriya": require("../assets/sigiriya.jpg"),
+  };
 
-    const fetchWeatherEncoding = async (mountain = selectedMountain) => {
-        
+  const fetchWeatherEncoding = async (mountain = selectedMountain) => {
     try {
       const { latitude, longitude } = mountain;
       const response = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&units=metric&appid=${WEATHER_API_KEY}`
       );
-
-      //console.log("🌍 API Weather for", selectedMountain.name, ":", response.data.weather[0].main);
-
-
 
       const forecasts = response.data.list.slice(0, 3).map((entry: any, index: number) => ({
         time: index === 0 ? "Now" : index === 1 ? "In 3 Hours" : "In 6 Hours",
@@ -129,65 +141,28 @@ const mountainImages: { [key: string]: any } = {
         humidity: entry.main.humidity,
       }));
 
-      console.log("✅ Extracted Weather Data:", forecasts);
+      console.log("🔍 Forecast Weather Breakdown:");
+forecasts.forEach((f: { time: any; weather: any; temp: any; humidity: any; }) => {
+  console.log(`${f.time}: Weather = ${f.weather}, Temp = ${f.temp}°C, Humidity = ${f.humidity}%`);
+});
+
+
+      setForecastNow(forecasts[0]);
+      setForecast3h(forecasts[1]);
+      setForecast6h(forecasts[2]);
 
       setTemperature(forecasts[0].temp);
       setHumidity(forecasts[0].humidity);
-      //setWeatherCondition(forecasts[0].weather);
-      
 
       const normalizedWeather = normalizeWeather(forecasts[0].weather);
-      const encodedWeather = weatherEncoding[normalizedWeather] ?? 0;
-      console.log("🚀 Weather Encoded Value:", encodedWeather);
-      setWeatherEncoded(encodedWeather);
-//setWeatherCondition(normalizedWeather);
-      //console.log("✅ FINAL Weather Condition in UI:", normalizedWeather);
+      const encoded = weatherEncoding[normalizedWeather] ?? 0;
+      setWeatherEncoded(encoded);
+      setWeatherCondition(normalizedWeather);
 
-     
-      setWeatherCondition(() => {
-        console.log("✅ Setting Final Weather Condition:", normalizedWeather);
-        return normalizedWeather;
-    });
-    
-    console.log("🔎 Before Updating Weather Condition: Extracted from API:", forecasts[0].weather);
-console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
-
-
-
-
-      if (encodedWeather !== null) {
-        predictTrailConditions(forecasts, encodedWeather);
+      if (encoded !== null) {
+        predictTrailConditions(forecasts, encoded);
       }
 
-      // 🔹 Extract 7-day forecast (every 24h entry from OpenWeather)
-      const dailyForecasts = response.data.list.filter((_: any, index: number) => index % 8 === 0).slice(0, 7);
-
-      // Process forecasts and predict trail conditions
-      const updatedForecasts = await Promise.all(
-        dailyForecasts.map(async (entry: any) => {
-          const normalizedWeather = normalizeWeather(entry.weather[0].main);
-          const encodedWeather = weatherEncoding[normalizedWeather] ?? 0;
-          const tempEncoded = encodeTemperature(entry.main.temp);
-          const humidityEncoded = encodeHumidity(entry.main.humidity);
-  
-          // Send data to Flask API for trail prediction
-          const response = await axios.post(
-            FLASK_API_URL,
-            { features: [encodedWeather, tempEncoded, humidityEncoded] },
-            { headers: { "Content-Type": "application/json" } }
-          );
-  
-          return {
-            day: new Date(entry.dt_txt).toLocaleDateString("en-US", { weekday: "short" }),
-            temp: entry.main.temp,
-            humidity: entry.main.humidity,
-            weather: entry.weather[0].main,
-            trailPrediction: response.data.prediction[0], // Store predicted trail condition
-          };
-        })
-      );
-  
-      setWeeklyForecast(updatedForecasts);
     } catch (error) {
       console.error("❌ Weather API Error:", error);
       Alert.alert("Error", "Failed to fetch weather data.");
@@ -202,13 +177,13 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
       return "Clear";
     }
     if (lowerCaseWeather.includes("light rain")) {
-      return "Light Rain";  // NEW: Differentiating rain intensity
+      return "Cloudy";  // NEW: Differentiating rain intensity
     }
     if (lowerCaseWeather.includes("moderate rain")) {
       return "Cloudy";
     }
     if (lowerCaseWeather.includes("heavy rain") || lowerCaseWeather.includes("intense rain")) {
-      return "Heavy Rain";
+      return "Rainy";
     }
     if (lowerCaseWeather.includes("rain")) {
       return "Rainy";
@@ -221,6 +196,7 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
     }
     return "Unknown"; // Default case
   };
+
   const predictTrailConditions = async (forecasts: any[], encodedWeather: number) => {
     try {
       const predictions = await Promise.all(
@@ -228,8 +204,6 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
           const payload = {
             features: [encodedWeather, encodeTemperature(forecast.temp), encodeHumidity(forecast.humidity)],
           };
-
-          console.log("🚀 Sending Payload to API:", payload);
 
           const response = await axios.post(
             FLASK_API_URL,
@@ -246,651 +220,589 @@ console.log("🌍 Normalized Weather (Final Value to Set):", normalizedWeather);
       console.error("❌ Trail Condition Prediction Error:", error);
     }
   };
-  const weatherMapping: { [key: number]: string } = {
-    0: "Cloudy",
-    1: "Windy",
-    2: "Rainy",
-    3: "Clear",
+
+  const getHumidityAdvice = (humidity: number): string => {
+    const hour = new Date().getHours();
+    const isMidday = hour >= 11 && hour <= 15;
+  
+    if (humidity > 90) {
+      return isMidday
+        ? "Extreme humidity — avoid hiking during midday."
+        : "Extreme humidity — hike with caution and take breaks.";
+    } else if (humidity > 70) {
+      return " High humidity — stay hydrated and don’t overexert.";
+    } else {
+      return "Good humidity for hiking.";
+    }
   };
   
-  const weatherIcons: { [key: number]: any } = {
-    0: "cloud-outline",   // Cloudy ☁️
-    1: "wind",            // Windy 🌬
-    2: "rainy-outline",   // Rainy 🌧
-    3: "sunny-outline",   // Sunny ☀️
+  const getTemperatureAdvice = (temp: number): string => {
+    if (temp >= 35) return " Very hot — avoid hiking, especially midday.";
+    if (temp >= 30) return "Hot — hike early and hydrate often.";
+    if (temp >= 20) return " Comfortable temperature.";
+    if (temp >= 10) return "Cool — dress in layers.";
+    return "❄️ Cold — dress warmly, avoid long rests.";
   };
   
-  const trailIcons: { [key: string]: any } = {
-    "Muddy": "weather-rainy",   // Muddy 🌧 (Slippery)
-    "Wet": "waves",             // Wet 💦 (Water on the trail)
-    "Dry": "weather-sunny",      // Dry ☀️ (Clear trail)
+  const getWeatherAdvice = (weather: string): string => {
+    const w = weather.toLowerCase();
+    if (w.includes("rain")) return "Rainy — carry waterproof gear.";
+    if (w.includes("cloud")) return " Cloudy — cool but watch for showers.";
+    if (w.includes("clear") || w.includes("sun")) return "Clear — wear sun protection.";
+    if (w.includes("wind")) return "Windy — secure loose items.";
+    return "Check detailed local weather before hiking.";
   };
   
+  const [pollenPercentage, setPollenPercentage] = useState<number | null>(null);
+const [pollenAdvice, setPollenAdvice] = useState<string>("");
 
-  useEffect(() => {
-    fetchWeatherEncoding();
-  }, [selectedMountain]);
-
-  useEffect(() => {
-    console.log("✅ UI Updated Weather Condition:", weatherCondition);
-}, [weatherCondition]);
-
-
-
-
-//   
-return (
-  <ScrollView contentContainerStyle={styles.scrollView}>
-  <View style={styles.container}>
-    <Text style={styles.header}>Select a Mountain</Text>
-
-   
-    {/* Searchable Text Input */}
-    <TouchableOpacity
-      style={styles.searchInputContainer}
-      onPress={() => setModalVisible(true)}
-    >
-      <Text style={styles.searchInputText}>{selectedMountain.name}</Text>
-      <Ionicons name="chevron-down" size={22} color="#000" />
-    </TouchableOpacity>
-    
-    {/* Modal for Searchable List */}
-    <Modal visible={isModalVisible} animationType="fade" transparent>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search Mountain..."
-            placeholderTextColor="#888"
-            value={searchText}
-    
-            onChangeText={(text) => {
-              setSearchText(text);
-              setFilteredMountains(mountains.filter(m => m.name.toLowerCase().includes(text.toLowerCase())));
-            }}
-          />
-
-          {/* List of Mountains */}
-          <FlatList
-            data={filteredMountains}
-            keyExtractor={(item) => item.name}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.listItem}
-                onPress={() => {
-                  setSelectedMountain(item);
-                  setWeatherCondition(null);  // Reset previous weather data
-                  setTemperature(null);
-                  setHumidity(null);
-                  setWeatherEncoded(null);
-                  setTrailConditions([]);
-                  setWeeklyForecast([]);
-                  
-                  setModalVisible(false);
-                  fetchWeatherEncoding(item); // Fetch new weather immediately
-                }}
-              >
-                <Text style={styles.listItemText}>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-
-          {/* Close Button */}
-          <TouchableOpacity onPress={() => setModalVisible(false)}>
-            <Text style={styles.closeButton}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-    <View style={styles.imageContainer}>
-    <ImageBackground
-        source={mountainImages[selectedMountain.name]}
-        style={styles.imageBackground}
-      >
-        <View style={styles.overlay} />
-        <View style={styles.headerContent}>
-          
-          <Text style={styles.mountainName}>{selectedMountain.name}</Text>
-          <View style={styles.row}>
-          <MaterialIcons name="landscape" size={22} color="#aaa" />
-          <Text style={styles.mountainElevation}>{selectedMountain.elevation}m</Text>
-        </View>
-        <View style={styles.row}>
-          <MaterialIcons name="landscape" size={22} color="#aaa" />
-          <Text style={styles.mountainDifficulty}>{selectedMountain.difficulty}</Text>
-          </View>
-        </View>
-      </ImageBackground>
-      </View>
- 
-    <View style={styles.weatherCard}>
-  <LinearGradient colors={["#1E2A47", "#000"]} style={styles.gradientBackground}>
-    <View style={styles.weatherHeader}>
-      <MaterialCommunityIcons name="weather-partly-rainy" size={28} color="#fff" />
-      <Text style={styles.weatherTitle}>Weather</Text>
-    </View>
-
-    {/* Temperature & Condition */}
-    <View style={styles.weatherMain}>
-      <Text style={styles.tempText}>{temperature}°</Text>
-      <MaterialCommunityIcons name={weatherEncoded !== null ? weatherIcons[weatherEncoded] : "weather-cloudy"} size={40} color="#fff" />
-    </View>
-    <Text style={styles.weatherCondition}>{weatherEncoded !== null ? weatherMapping[weatherEncoded] : "Unknown"}</Text>
-
-    {/* Extra Weather Info */}
-    <View style={styles.weatherInfo}>
-      {/* <View style={styles.infoItem}>
-        <Feather name="sunrise" size={22} color="#fff" />
-        <Text style={styles.infoText}>06:14</Text>
-      </View> */}
-      {/* <View style={styles.infoItem}>
-        <Feather name="sunset" size={22} color="#fff" />
-        <Text style={styles.infoText}>18:19</Text>
-      </View> */}
-      <View style={styles.infoItem}>
-        <Ionicons name="water-outline" size={22} color="#fff" />
-        <Text style={styles.infoText}>{humidity}%</Text>
-      </View>
-    </View>
-
-    {/* Trail Condition */}
-    <Text style={styles.trailHeading}>Trail Condition</Text>
-    {trailConditions.map((forecast, index) => (
-      <View key={index} style={styles.trailRow}>
-        <MaterialCommunityIcons name={trailIcons[forecast.condition] || "terrain"} size={22} color="#fff" />
-        <Text style={styles.trailText}>{forecast.time}: {forecast.condition}</Text>
-      </View>
-    ))}
-  </LinearGradient>
-</View>
-
-    
-    <TouchableOpacity 
-  style={styles.button} 
-  onPress={() => {
-    console.log("🚀 Navigating with:", selectedMountain); // Ensure correct mountain is logged
-    navigation.navigate("PredictionResult", {
-      mountain: {
-        name: selectedMountain.name,
-        elevation: selectedMountain.elevation,  // ✅ Fix: Ensure correct elevation is passed
-        difficulty: selectedMountain.difficultyEncoded,
-        weatherEncoded,
-        temperature,
-        humidity,
-        trailConditions,
-      },
-      restStops: Number(restStops),
-      travelMode: selectedTravelMode,
-    });
-  }}
->
-  <Text style={styles.buttonText}>Show Distance and Time</Text>
-</TouchableOpacity>
-
-{/* Weekly Forecast */}
-<Text style={styles.subHeader}>Weekly Forecast</Text>
-
-<ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
-  {weeklyForecast.map((dayData, index) => {
-    const currentDate = new Date(); // Get today's date
-    const forecastDate = new Date();
-    forecastDate.setDate(currentDate.getDate() + index); // Set correct forecast date
-
-    return (
-      <TouchableOpacity
-        key={index}
-        style={[styles.dateButton, selectedDay === index ? styles.selectedDateButton : {}]}
-        onPress={() => {
-          setSelectedDay(index);
-          setSelectedForecastDetails(weeklyForecast[index]);
-          setDayModalVisible(true);
-        }}
-      >
-        <Text style={styles.dateText}>
-          {dayData.day} {forecastDate.getDate()} {/* Example: "Sun 16" */}
-        </Text>
-      </TouchableOpacity>
+const fetchPollenData = async (latitude: number, longitude: number) => {
+  try {
+    const response = await axios.get(
+      `http://192.168.1.16:5000/get-pollen?lat=${latitude}&lng=${longitude}`
     );
-  })}
-</ScrollView>
 
-{weeklyForecast.length > 0 && (
-  <Modal visible={isDayModalVisible} animationType="fade" transparent>
-    <View style={styles.modalContainer}>
-      <View style={styles.modalContent}>
-        {selectedForecastDetails && (
-          <>
-            <Text style={styles.modalTitle}>{selectedForecastDetails.day} Forecast</Text>
+    console.log(" Full response:", response.data);
 
-            {/* Weather */}
-            <View style={styles.modalRow}>
-              <MaterialCommunityIcons name={weatherIcons[weatherEncoding[selectedForecastDetails.weather]] || "weather-cloudy"} size={24} color="#ff9800" />
-              <Text style={styles.modalLabel}>
-                Weather: {weatherMapping[weatherEncoding[selectedForecastDetails.weather]] ?? selectedForecastDetails.weather}
-              </Text>
-            </View>
+    const dataArray = response.data?.data;
+    const count = dataArray?.[0]?.Count;
 
-            {/* Temperature */}
-            <View style={styles.modalRow}>
-              <MaterialCommunityIcons name="thermometer" size={24} color="#d32f2f" />
-              <Text style={styles.modalLabel}>Temperature: {selectedForecastDetails.temp}°C</Text>
-            </View>
+    if (
+      count?.grass_pollen !== undefined &&
+      count?.tree_pollen !== undefined &&
+      count?.weed_pollen !== undefined
+    ) {
+      const avgPollen =
+        (count.grass_pollen + count.tree_pollen + count.weed_pollen) / 3;
+      const percentage = Math.round((avgPollen / 120) * 100); // Adjust scale if needed
+      setPollenPercentage(percentage);
 
-            {/* Humidity */}
-            <View style={styles.modalRow}>
-              <Ionicons name="water-outline" size={24} color="#2196F3" />
-              <Text style={styles.modalLabel}>Humidity: {selectedForecastDetails.humidity}%</Text>
-            </View>
-
-            {/* Trail Condition */}
-            <View style={styles.modalRow}>
-              <MaterialCommunityIcons name={trailIcons[selectedForecastDetails.trailPrediction] || "terrain"} size={24} color="#4CAF50" />
-              <Text style={styles.modalLabel}>Trail Condition: {selectedForecastDetails.trailPrediction}</Text>
-            </View>
-
-            {/* Close Button */}
-            <TouchableOpacity onPress={() => setDayModalVisible(false)} style={styles.forecastCloseButton}>
-              <Text style={styles.forecastCloseButtonText}>Close</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </View>
-  </Modal>
-)}
-
-  </View>
-  </ScrollView>
-);
+      if (avgPollen <= 25) {
+        setPollenAdvice("🟢 Low pollen – Safe for all hikers.");
+      } else if (avgPollen <= 60) {
+        setPollenAdvice("🟡 Moderate pollen – Use mask if allergic.");
+      } else {
+        setPollenAdvice("🔴 High pollen – Take antihistamines or avoid hiking if sensitive.");
+      }
+    } else {
+      throw new Error("Pollen data unavailable.");
+    }
+  } catch (error) {
+    console.error(" Pollen API Error:", error);
+    setPollenPercentage(null);
+    setPollenAdvice(" Unable to load pollen data.");
+  }
 };
 
 
-// Styles
+  // useEffect(() => {
+  //   fetchWeatherEncoding();
+  // }, [selectedMountain]);
+
+  useEffect(() => {
+    fetchWeatherEncoding();
+    fetchPollenData(selectedMountain.latitude, selectedMountain.longitude); // fetch pollen
+  }, [selectedMountain]);
+  
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* <TouchableOpacity style={styles.mountainPicker} onPress={() => setModalVisible(true)}>
+        <Text style={styles.mountainName}>{selectedMountain.name}</Text>
+        <Ionicons name="chevron-down" size={24} color="black" />
+      </TouchableOpacity> */}
+        <TouchableOpacity
+  style={styles.searchInputContainer}
+  onPress={() => setModalVisible(true)}
+>
+  <Text style={styles.searchInputText}>{selectedMountain.name}</Text>
+  <Ionicons name="chevron-down" size={22} color="#000" />
+</TouchableOpacity>
+
+<Modal visible={isModalVisible} animationType="fade" transparent>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search Mountain..."
+        placeholderTextColor="#888"
+        value={searchText}
+        onChangeText={(text) => {
+          setSearchText(text);
+          setFilteredMountains(
+            text.trim() === ""
+              ? mountains  // ✅ Show all when input is empty
+              : mountains.filter(m =>
+                  m.name.toLowerCase().includes(text.toLowerCase())
+                )
+          );
+        }}
+      />
+
+      <FlatList
+        data={filteredMountains}
+        keyExtractor={(item) => item.name}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => {
+              setSelectedMountain(item);
+              setWeatherCondition("");
+              setTemperature(null);
+              setHumidity(null);
+              setWeatherEncoded(null);
+              setTrailConditions([]);
+              setWeeklyForecast([]);
+              setModalVisible(false);
+              fetchWeatherEncoding(item);
+            }}
+          >
+            <Text style={styles.listItemText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+      />
+
+      <TouchableOpacity onPress={() => setModalVisible(false)}>
+        <Text style={styles.closeButton}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<View style={styles.imageContainer}>
+  <ImageBackground
+    source={mountainImages[selectedMountain.name]}
+    style={styles.imageBackground}
+    imageStyle={{ borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}
+  >
+    <View style={styles.overlay} />
+    <View style={styles.headerContent}>
+      <Text style={styles.mountainName}>{selectedMountain.name}</Text>
+      
+      <View style={styles.row}>
+        <MaterialIcons name="landscape" size={20} color="#eee" />
+        <Text style={styles.mountainElevation}>{selectedMountain.elevation}m</Text>
+      </View>
+      
+      <View style={styles.row}>
+        <MaterialIcons name="trending-up" size={20} color="#eee" />
+        <Text style={styles.mountainDifficulty}>{selectedMountain.difficulty}</Text>
+      </View>
+    </View>
+  </ImageBackground>
+</View>
+
+<View style={styles.weatherCard}>
+  <Text style={styles.sectionTitle}>Trail Forecast: Now, 3h, 6h</Text>
+  <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+    {[forecastNow, forecast3h, forecast6h].map((fc, idx) => {
+      if (!fc) return null; // Skip if forecast is missing
+
+      return (
+        <View key={idx} style={{ alignItems: 'center', width: 100 }}>
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{["Now", "3h", "6h"][idx]}</Text>
+
+          <MaterialCommunityIcons
+            name={
+              fc.weather.toLowerCase().includes("clear") ? "weather-sunny" :
+              fc.weather.toLowerCase().includes("rain") ? "weather-rainy" :
+              fc.weather.toLowerCase().includes("cloud") ? "weather-cloudy" :
+              "weather-partly-cloudy"
+            }
+            size={24}
+            color="#555"
+          />
+          <Text style={{ fontSize: 12 }}>{fc.weather}</Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <MaterialCommunityIcons name="thermometer" size={16} color="#e67e22" />
+            <Text style={{ fontSize: 12, marginLeft: 4 }}>{fc.temp}°C</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+            <MaterialCommunityIcons name="water-percent" size={16} color="#3498db" />
+            <Text style={{ fontSize: 12, marginLeft: 4 }}>{fc.humidity}%</Text>
+          </View>
+
+          <View
+            style={{
+              width: 40,
+              height: 10,
+              backgroundColor:
+                trailConditions[idx]?.condition === "Dry"
+                  ? "#2ecc71"
+                  : trailConditions[idx]?.condition === "Moderate"
+                  ? "#f1c40f"
+                  : trailConditions[idx]?.condition === "Wet"
+                  ? "#3498db"
+                  : trailConditions[idx]?.condition === "Muddy"
+                  ? "#8e44ad"
+                  : "#e74c3c",
+              borderRadius: 5,
+              marginTop: 6,
+            }}
+          />
+          <Text style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
+            {trailConditions[idx]?.condition}
+          </Text>
+        </View>
+      );
+    })}
+  </View>
+</View>
+
+<View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <MaterialCommunityIcons name="circle" size={12} color="#2ecc71" />
+    <Text style={{ fontSize: 12, marginLeft: 4 }}>Dry</Text>
+  </View>
+
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <MaterialCommunityIcons name="circle" size={12} color="#f1c40f" />
+    <Text style={{ fontSize: 12, marginLeft: 4 }}>Moderate</Text>
+  </View>
+
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <MaterialCommunityIcons name="circle" size={12} color="#3498db" />
+    <Text style={{ fontSize: 12, marginLeft: 4 }}>Wet</Text>
+  </View>
+
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <MaterialCommunityIcons name="circle" size={12} color="#8e44ad" />
+    <Text style={{ fontSize: 12, marginLeft: 4 }}>Muddy</Text>
+  </View>
+</View>
+
+
+<View style={styles.weatherCard}>
+  <Text style={styles.sectionTitle}> Hiking Advice Overview</Text>
+
+  {[forecastNow, forecast3h, forecast6h].map((forecast, idx) => {
+    if (!forecast) return null;
+
+    const timeLabel = ["Now", "In 3 Hours", "In 6 Hours"][idx];
+    const humidityAdvice = getHumidityAdvice(forecast.humidity);
+    const tempAdvice = getTemperatureAdvice(forecast.temp);
+    const weatherAdvice = getWeatherAdvice(forecast.weather);
+
+    return (
+      <View key={idx} style={styles.adviceCard}>
+        <Text style={styles.adviceTime}>{timeLabel}</Text>
+
+        {/* Weather */}
+        <View style={styles.adviceRow}>
+          <MaterialCommunityIcons name="weather-cloudy" size={20} color="#3498db" />
+          <Text style={styles.adviceText}>{weatherAdvice}</Text>
+        </View>
+
+        {/* Temperature */}
+        <View style={styles.adviceRow}>
+          <MaterialCommunityIcons name="thermometer" size={20} color="#e67e22" />
+          <Text style={styles.adviceText}>{tempAdvice}</Text>
+        </View>
+
+        {/* Humidity */}
+        <View style={styles.adviceRow}>
+          <MaterialCommunityIcons name="water-percent" size={20} color="#16a085" />
+          <Text style={styles.adviceText}>{humidityAdvice}</Text>
+        </View>
+      </View>
+    );
+  })}
+</View>
+
+<View style={styles.weatherCard}>
+  <Text style={styles.sectionTitle}>Pollen Report</Text>
+  {pollenPercentage !== null ? (
+    <>
+      <Text style={styles.adviceLine}>Pollen Level: {pollenPercentage}%</Text>
+      <Text style={styles.adviceLine}>{pollenAdvice}</Text>
+    </>
+  ) : (
+    <Text style={styles.adviceLine}>Loading pollen data...</Text>
+  )}
+</View>
+
+{selectedMountain && (
+
+  <MapView
+  style={styles.map}
+  region={{
+    latitude: selectedMountain.latitude,
+    longitude: selectedMountain.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  }}
+>
+  <Marker
+    coordinate={{
+      latitude: selectedMountain.latitude,
+      longitude: selectedMountain.longitude,
+    }}
+    title={selectedMountain.name}
+    description={`Elevation: ${selectedMountain.elevation}m`}
+  />
+
+  {/* Pollen Circle */}
+  {pollenPercentage !== null && (
+    <Circle
+      center={{
+        latitude: selectedMountain.latitude,
+        longitude: selectedMountain.longitude,
+      }}
+      radius={500}
+      strokeColor="transparent"
+      fillColor={
+        pollenPercentage <= 25
+          ? 'rgba(0,200,0,0.3)'
+          : pollenPercentage <= 60
+          ? 'rgba(255,200,0,0.4)'
+          : 'rgba(255,0,0,0.4)'
+      }
+    />
+  )}
+
+  {/* Trail Path Polyline */}
+  {trailPaths[selectedMountain.name] && (
+    <Polyline
+      coordinates={trailPaths[selectedMountain.name]}
+      strokeColor={
+        trailConditions[0]?.condition === "Dry"
+          ? "#00cc00"
+          : trailConditions[0]?.condition === "Moderate"
+          ? "#ffcc00"
+          : "#ff3333"
+      }
+      strokeWidth={4}
+    />
+  )}
+</MapView>
+
+)}
+
+
+      <TouchableOpacity
+        style={styles.proceedButton}
+        onPress={() => navigation.navigate("UserInput", {
+          mountain: {
+            name: selectedMountain.name,
+            elevation: selectedMountain.elevation,
+            difficulty: selectedMountain.difficultyEncoded,
+            weatherEncoded: weatherEncoded ?? 0,
+            temperature: temperature ?? 0,
+            humidity: humidity ?? 0,
+            trailConditions,
+            forecastNow,
+            forecast3h,
+            forecast6h,
+          }
+        })}
+      >
+       
+
+        <Text style={styles.proceedText}>Next: Enter Your Profile</Text>
+      </TouchableOpacity>
+
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <TextInput style={styles.searchBox} placeholder="Search Mountain..." onChangeText={(text) => {
+              setSearchText(text);
+              setFilteredMountains(mountains.filter(m => m.name.toLowerCase().includes(text.toLowerCase())));
+            }} />
+            <FlatList
+              data={filteredMountains}
+              keyExtractor={(item) => item.name}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => {
+                  setSelectedMountain(item);
+                  setModalVisible(false);
+                }}>
+                  <Text style={styles.modalItem}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeModal}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
+    </ScrollView>
+  );
+};
+
 const styles = StyleSheet.create({
-  listItemText: {
+  container: { padding: 20, alignItems: "center" },
+  mountainPicker: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
+  mountainName: { fontSize: 20, fontWeight: "bold", marginRight: 10 },
+  detail: { fontSize: 16, marginVertical: 5 },
+  weatherCard: { backgroundColor: "#f0f0f0", padding: 15, borderRadius: 10, width: "100%", marginTop: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  weatherRow: { marginBottom: 8 },
+  weatherText: { fontSize: 14 },
+  proceedButton: { backgroundColor: "#34A853", padding: 15, marginTop: 20, borderRadius: 10, width: "100%", alignItems: "center" },
+  proceedText: { color: "#fff", fontWeight: "bold" },
+  modalBackground: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center" },
+  modalContainer: { backgroundColor: "white", margin: 20, borderRadius: 10, padding: 20 },
+  searchBox: { borderBottomWidth: 1, marginBottom: 10, padding: 8 },
+  modalItem: { fontSize: 16, padding: 10 },
+  closeModal: { marginTop: 10, textAlign: "center", fontWeight: "bold", color: "red" },
+  adviceLine: {
+    fontSize: 14,
+    color: "#333",
+    marginVertical: 2,
+  },
+  adviceTitle: {
+    marginTop: 10,
+    fontWeight: "bold",
+    color: "#007AFF",
     fontSize: 16,
-    color: "#000",  // Ensure black text for visibility
-    textAlign: "left",
-    paddingVertical: 8,
   },
-  
-  // container: {
-  //   flex: 1,
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   backgroundColor: "#f2f2f2",
-  // },
-  scrollView: {
-    //alignItems: "center",
-    paddingVertical: 30,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f2f2f2",
-    paddingTop: 20,
-  },
-  scrollContainer: {
-   
-    flexGrow: 1,
-    paddingBottom: 20,
-    alignItems: "center",
-  },
-  header: { 
-    fontSize: 20, 
-    fontWeight: "bold", 
-    marginBottom: 15 
-  },
-  pickerContainer: {
-    width: "90%", 
-    backgroundColor: "#ffffff", // Ensures white clean background
-    borderRadius: 8, 
-    paddingHorizontal: 5, 
-    marginBottom: 15, 
-    borderWidth: 1, 
-    borderColor: "#ccc",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2, // For Android shadow
-  },
-  picker: {
-    height: 50, 
-    width: "100%", 
-    backgroundColor: "transparent", // Fixes extra gray background
-    color: "#333", // Ensures text is visible
-  },
-
-  label: { 
-    fontSize: 16, 
-    marginTop: 10 
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    marginTop: 5,
-    width: "80%",
-    borderRadius: 5,
-  },
-  button: {
-    backgroundColor: "#34A853",
-    padding: 15,
+  map: {
+    width: "100%",
+    height: 200,
+    marginTop: 15,
     borderRadius: 10,
-    marginTop: 20,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
- 
- 
+  adviceCard: {
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
   
-
-  // Search Input Button (Replaces Dropdown)
-  searchInputContainer: {
-    width: "90%",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    alignItems: "center",
-    marginBottom: 15,
+  adviceTime: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 6,
+    color: "#007AFF",
   },
-
+  
+  adviceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 3,
+  },
+  
+  adviceText: {
+    fontSize: 14,
+    marginLeft: 8,
+    color: "#333",
+  },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 10,
+    marginHorizontal: 20,
+    borderRadius: 12,
+    elevation: 3,
+  },
+  
   searchInputText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+  },
+  
+  // modalContainer: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0, 0, 0, 0.5)",
+  //   justifyContent: "center",
+  //   padding: 20,
+  // },
+  
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  
+  searchInput: {
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  
+  listItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  
+  listItemText: {
     fontSize: 16,
     color: "#333",
   },
-
-  // Modal Styles
-
-
-  searchInput: {
-    width: "100%",
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginBottom: 10,
-    backgroundColor: "#333",
-  },
-
-  listItem: {
-    padding: 15,
-    width: "100%",
-    borderBottomWidth: 1,
-    borderBottomColor: "#555",
-  },
-
   
-
   closeButton: {
+    textAlign: "center",
     marginTop: 10,
-    color: "#007BFF",
-    fontSize: 18,
+    color: "red",
     fontWeight: "bold",
-  },
-  
-  
- 
-  
-  closeButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-   // ✅ Close Button for Weekly Forecast Modal
-  
-  
-
-  imageBackground: {
-    width: "100%", // Ensure full width within parent
-    height: 220,
-    resizeMode: "cover", // Make sure the image fully covers the container
-    borderRadius: 10, 
-    overflow: "hidden", // Prevent overflow issues
-    marginBottom: 10,
-    justifyContent: "flex-end",
   },
   imageContainer: {
-    width: "90%", // Keep within screen bounds
-    alignSelf: "center", // Center it properly
-   // backgroundColor: "#fff", // Ensure it blends well
-    borderRadius: 10,
-    overflow: "hidden", // Prevent unwanted expansion
+    width: "100%",
+    height: 220,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: "hidden",
+  },
+  
+  imageBackground: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "flex-end",
   },
   
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
+  
   headerContent: {
-    paddingHorizontal: 20,
+    padding: 16,
   },
-  mountainInfo: {
-    padding: 15,
-  },
-  mountainName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-  },
+  
+  // mountainName: {
+  //   fontSize: 24,
+  //   fontWeight: "bold",
+  //   color: "#fff",
+  //   marginBottom: 4,
+  // },
+  
   mountainElevation: {
-    fontSize: 18,
     color: "#fff",
-  },
-  mountainDifficulty: {
-    fontSize: 18,
-    color: "#fff",
-  },
-  mountainDetails: {
     fontSize: 14,
+    marginLeft: 6,
+  },
+  
+  mountainDifficulty: {
     color: "#fff",
-    marginTop: 5,
+    fontSize: 14,
+    marginLeft: 6,
   },
-  detailsContainer: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
+  
   row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginTop: 4,
   },
-  detailText: {
-    fontSize: 16,
-    color: "#aaa",
-    marginLeft: 10,
-  },
-  bottomContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 20,
-  },
-  downloadButton: {
-    backgroundColor: "#34A853",
-    padding: 15,
-    borderRadius: 10,
-  },
-  mapButton: {
-    backgroundColor: "#333",
-    padding: 15,
-    borderRadius: 10,
-  },
- 
-  weatherContainer: {
-    backgroundColor: "#d3d3d3",  // Dark theme background
-    padding: 15,
-    borderRadius: 15,
-    width: "90%",
-    alignSelf: "center",
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
-
-  weatherCard: {
-    width: "90%",
-    alignSelf: "center",
-    borderRadius: 15,
-    overflow: "hidden",
-    marginTop: 20,
-  },
-
-  gradientBackground: {
-    padding: 20,
-    borderRadius: 15,
-  },
-
-  weatherHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  weatherTitle: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
-    marginLeft: 10,
-  },
-
-  weatherMain: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-
-  tempText: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-
-  weatherCondition: {
-    fontSize: 18,
-    color: "#bbb",
-    marginTop: 5,
-  },
-
-  weatherInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 15,
-  },
-
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  infoText: {
-    color: "#fff",
-    fontSize: 14,
-    marginLeft: 5,
-  },
-
-  trailHeading: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-    marginTop: 15,
-  },
-
-  trailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 5,
-  },
-
-  trailText: {
-    fontSize: 14,
-    color: "#ccc",
-    marginLeft: 10,
-  },
-  subHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
-    textAlign: "center",
-    color: "#333",
-  },
-
-  dateSelector: {
-    flexDirection: "row",
-    marginTop: 10,
-    paddingHorizontal: 10,
-  },
-
-  dateButton: {
-    padding: 12,
-    marginHorizontal: 5,
-    borderRadius: 8,
-    backgroundColor: "#ddd",
-  },
-
-  selectedDateButton: {
-    backgroundColor: "#4CAF50",
-  },
-
-  dateText: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
-  },
-
-  // Modal Styles
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent background
-  },
-
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "80%",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 15,
-    color: "#333",
-  },
-
-  modalRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-
-  modalLabel: {
-    fontSize: 18,
-    marginLeft: 10,
-    color: "#555",
-  },
-
-  forecastCloseButton: {
-    marginTop: 20,
-    padding: 12,
-    backgroundColor: "#ff5722",
-    borderRadius: 8,
-    width: "60%",
-    alignItems: "center",
-  },
-
-  forecastCloseButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  
+  
 });
 
 export default MountainSelectionScreen;

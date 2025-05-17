@@ -29,7 +29,8 @@ export default function HomeScreen() {
   const [originalWeatherDescription, setOriginalWeatherDescription] = useState<string | null>(null);
 
 
-  const API_KEY = "5b1d50dc4c9d25a46417835c506a0644"; // OpenWeather API Key
+  //const API_KEY = "5b1d50dc4c9d25a46417835c506a0644"; // OpenWeather API Key
+  const API_KEY = "2028b5735eb1f94e8433857df6411728";
   //const FLASK_API_URL = "http://192.168.1.18:5000/predict/classifier"; // Flask API
   const FLASK_API_URL = "https://sehara.el.r.appspot.com/predict/classifier";
 
@@ -38,28 +39,7 @@ export default function HomeScreen() {
     getLocationPermission();
   }, []);
 
-  // Get user location
-  // const getLocationPermission = async () => {
-  //   try {
-  //     if (navigator.geolocation) {
-  //       navigator.geolocation.getCurrentPosition(
-  //         (position) => {
-  //           const { latitude, longitude } = position.coords;
-  //           fetchCityName(latitude, longitude);
-  //           fetchWeatherData(latitude, longitude);
-  //         },
-  //         (error) => {
-  //           alert("Error fetching location. Enable location services.");
-  //           console.error("Location Error:", error);
-  //         }
-  //       );
-  //     } else {
-  //       alert("Geolocation is not supported by this browser.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Location Permission Error:", error);
-  //   }
-  // };
+  
 
   const getLocationPermission = async () => {
     try {
@@ -102,6 +82,7 @@ export default function HomeScreen() {
     Rainy: 2,
     Cloudy: 0,
     Windy: 1,
+    "LightRain": 2,
     Unknown: 0,
   };
 
@@ -112,7 +93,7 @@ export default function HomeScreen() {
       return "Clear";
     }
     if (lowerCaseWeather.includes("light rain")) {
-      return "Light Rain";  // NEW: Differentiating rain intensity
+      return "LightRain";  // NEW: Differentiating rain intensity
     }
     if (lowerCaseWeather.includes("moderate rain")) {
       return "Cloudy";
